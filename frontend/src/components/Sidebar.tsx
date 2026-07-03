@@ -27,7 +27,7 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="border-b border-white/10 p-6">
           <Link href="/" className="text-xl font-bold text-white">
-            RecruitShield AI
+            TrustLens
           </Link>
         </div>
 

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RecruitShield AI – Recruitment Fraud Detection & Trust Intelligence Platform",
+  title: "TrustLens: AI Powered Scam, Fraud and Fake Job Detection Platform",
   description: "Detect Fake Jobs, Verify Recruiters, Protect Careers. Advanced AI-powered platform for detecting recruitment scams, verifying companies and recruiters.",
 };
 
