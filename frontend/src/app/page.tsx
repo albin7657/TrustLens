@@ -21,9 +21,14 @@ export default function Home() {
             <Link href="#contact" className="rounded-full px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5 hover:text-white">Contact Us</Link>
           </div>
 
-          <Link href="/login" className="rounded-full bg-red-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600">
-            Get Started
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="rounded-full border border-white/10 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/5">
+              Log in
+            </Link>
+            <Link href="/signup" className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110">
+              Sign up free
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -44,8 +49,11 @@ export default function Home() {
               Advanced AI-powered platform for detecting recruitment scams, verifying companies and recruiters, and protecting job seekers from fraudulent activities.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link href="/login" className="rounded-full bg-red-500 px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-red-600">
-                Get Started
+              <Link href="/signup" className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-red-500/25 transition hover:brightness-110">
+                Get Started — It&apos;s Free
+              </Link>
+              <Link href="/login" className="rounded-full border border-white/15 px-8 py-4 text-lg font-medium text-slate-200 transition hover:bg-white/5">
+                Log in
               </Link>
             </div>
           </div>
