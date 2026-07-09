@@ -6,7 +6,7 @@ import { ShieldCheck, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8005';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 function CallbackHandler() {
   const router = useRouter();
@@ -18,16 +18,46 @@ function CallbackHandler() {
     const errorParam = searchParams.get('error');
 
     if (errorParam) {
-      setError('Authentication failed. Please try again.');
+      setError(`Authentication failed: ${errorParam}. Please try again.`);
       return;
     }
 
+    // ── Implicit flow: Supabase sends tokens as URL hash fragments ──────────
+    // Hash fragments are never sent to the server, so we parse them here.
+    const hash = window.location.hash;
+    if (hash) {
+      const params = new URLSearchParams(hash.substring(1)); // strip leading '#'
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      const tokenType = params.get('token_type');
+
+      if (accessToken) {
+        localStorage.setItem('access_token', accessToken);
+        if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
+        if (tokenType) localStorage.setItem('token_type', tokenType);
+
+        // Fetch user profile from backend using the new token
+        fetch(`${BACKEND_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+          .then((r) => r.json())
+          .then((user) => {
+            localStorage.setItem('user', JSON.stringify(user));
+          })
+          .catch(() => {/* non-fatal — token is still stored */})
+          .finally(() => {
+            router.push('/institutional-dashboard');
+          });
+        return;
+      }
+    }
+
+    // ── PKCE flow: Supabase sends a ?code= query parameter ─────────────────
     if (!code) {
-      setError('No authorization code received.');
+      setError('No authorization code received. Please try signing in again.');
       return;
     }
 
-    // Exchange the code for a session
     async function exchangeCode() {
       try {
         const res = await fetch(`${BACKEND_URL}/auth/exchange-code?code=${code}`, {
@@ -41,7 +71,6 @@ function CallbackHandler() {
           return;
         }
 
-        // Store tokens and redirect
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('refresh_token', data.refresh_token);
         localStorage.setItem('user', JSON.stringify(data.user));

@@ -70,7 +70,10 @@ async def signup(payload: SignUpRequest):
             {
                 "email": payload.email,
                 "password": payload.password,
-                "options": {"data": metadata} if metadata else {},
+                "options": {
+                    "data": metadata,
+                    "email_redirect_to": f"{settings.FRONTEND_URL}/auth/callback",
+                },
             }
         )
 
@@ -163,7 +166,9 @@ async def google_oauth():
             {
                 "provider": "google",
                 "options": {
-                    "redirect_to": f"{settings.BACKEND_URL}/auth/google/callback",
+                    # Redirect directly to the frontend callback — Supabase sends
+                    # tokens as URL hash fragments which the backend cannot read.
+                    "redirect_to": f"{settings.FRONTEND_URL}/auth/callback",
                 },
             }
         )

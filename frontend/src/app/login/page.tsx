@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { ArrowRight, Building2, LockKeyhole, Mail, ShieldCheck, UserRound, Users, Eye, EyeOff } from 'lucide-react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8005';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -169,20 +169,45 @@ export default function LoginPage() {
             </div>
 
             <form className="relative mt-6 space-y-4" onSubmit={handleSubmit}>
-              <label className="block space-y-2">
+              {/* Role selector cards */}
+              <div className="space-y-2">
                 <span className="flex items-center gap-2 text-sm font-medium text-slate-300">
                   <UserRound className="h-4 w-4 text-slate-400" />
                   Select role
                 </span>
-                <select
-                  value={role}
-                  onChange={(event) => setRole(event.target.value as 'institution' | 'user')}
-                  className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-red-400/60 focus:ring-2 focus:ring-red-500/20"
-                >
-                  <option value="institution">Institution</option>
-                  <option value="user">User</option>
-                </select>
-              </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRole('institution')}
+                    className={`flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition ${
+                      role === 'institution'
+                        ? 'border-cyan-400/60 bg-cyan-500/10 ring-1 ring-cyan-400/20'
+                        : 'border-white/10 bg-slate-950/70 hover:border-white/20 hover:bg-slate-800/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-semibold text-sm text-white">
+                      <Building2 className={`h-4 w-4 ${role === 'institution' ? 'text-cyan-300' : 'text-slate-400'}`} />
+                      Institution
+                    </div>
+                    <p className="text-xs text-slate-400">Placement officers and teams</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('user')}
+                    className={`flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition ${
+                      role === 'user'
+                        ? 'border-red-400/60 bg-red-500/10 ring-1 ring-red-400/20'
+                        : 'border-white/10 bg-slate-950/70 hover:border-white/20 hover:bg-slate-800/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-semibold text-sm text-white">
+                      <UserRound className={`h-4 w-4 ${role === 'user' ? 'text-red-300' : 'text-slate-400'}`} />
+                      User
+                    </div>
+                    <p className="text-xs text-slate-400">Candidates and job seekers</p>
+                  </button>
+                </div>
+              </div>
 
               <label className="block space-y-2">
                 <span className="flex items-center gap-2 text-sm font-medium text-slate-300">

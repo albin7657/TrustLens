@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ArrowRight, LockKeyhole, Mail, ShieldCheck, User, Users, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, LockKeyhole, Mail, ShieldCheck, User, Users, Eye, EyeOff, CheckCircle2, Building2, UserRound } from 'lucide-react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8005';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -18,6 +18,7 @@ export default function SignupPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [role, setRole] = useState<'institution' | 'user'>('institution');
 
   // Redirect if already logged in
   useEffect(() => {
@@ -70,9 +71,11 @@ export default function SignupPage() {
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('refresh_token', data.refresh_token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('user_role', role);
         router.push('/institutional-dashboard');
       } else {
-        // Email confirmation required
+        // Email confirmation required — persist role for when they log in
+        localStorage.setItem('user_role', role);
         setIsSuccess(true);
       }
     } catch {
@@ -218,6 +221,46 @@ export default function SignupPage() {
             </div>
 
             <form className="relative mt-6 space-y-4" onSubmit={handleSubmit}>
+              {/* Role selector cards */}
+              <div className="space-y-2">
+                <span className="flex items-center gap-2 text-sm font-medium text-slate-300">
+                  <UserRound className="h-4 w-4 text-slate-400" />
+                  Select role
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRole('institution')}
+                    className={`flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition ${
+                      role === 'institution'
+                        ? 'border-cyan-400/60 bg-cyan-500/10 ring-1 ring-cyan-400/20'
+                        : 'border-white/10 bg-slate-950/70 hover:border-white/20 hover:bg-slate-800/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-semibold text-sm text-white">
+                      <Building2 className={`h-4 w-4 ${role === 'institution' ? 'text-cyan-300' : 'text-slate-400'}`} />
+                      Institution
+                    </div>
+                    <p className="text-xs text-slate-400">Placement officers and teams</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('user')}
+                    className={`flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition ${
+                      role === 'user'
+                        ? 'border-red-400/60 bg-red-500/10 ring-1 ring-red-400/20'
+                        : 'border-white/10 bg-slate-950/70 hover:border-white/20 hover:bg-slate-800/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-semibold text-sm text-white">
+                      <UserRound className={`h-4 w-4 ${role === 'user' ? 'text-red-300' : 'text-slate-400'}`} />
+                      User
+                    </div>
+                    <p className="text-xs text-slate-400">Candidates and job seekers</p>
+                  </button>
+                </div>
+              </div>
+
               {/* Full Name */}
               <label className="block space-y-2">
                 <span className="flex items-center gap-2 text-sm font-medium text-slate-300">
