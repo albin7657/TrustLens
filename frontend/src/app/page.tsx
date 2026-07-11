@@ -1,111 +1,261 @@
-import Link from 'next/link';
-import {ShieldCheck} from 'lucide-react';
+import Link from "next/link";
+import {
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  Cpu,
+  ShieldCheck,
+  Sparkles,
+  Users,
+} from "lucide-react";
+
+const highlights = [
+  {
+    title: "AI risk intelligence",
+    text: "Detect suspicious signals in job posts, recruiter profiles, and domains before they impact your team.",
+  },
+  {
+    title: "Executive-ready reporting",
+    text: "Turn compliance findings into concise summaries for founders, HR leaders, and investors.",
+  },
+  {
+    title: "Built for scale",
+    text: "Support fast-moving hiring teams with workflows that are secure, reliable, and easy to trust.",
+  },
+];
+
+const metrics = [
+  { value: "24/7", label: "continuous screening" },
+  { value: "3x", label: "faster review cycles" },
+  { value: "100%", label: "trust-first workflows" },
+];
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <nav className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
+    <main className="min-h-screen overflow-hidden bg-[#f5f7fb] text-slate-800">
+      <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-orange-500 text-white shadow-lg shadow-red-500/20">
-                <ShieldCheck className="h-6 w-6" />
-              </div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-sm">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
             <div>
-              <p className="text-lg font-bold text-white">TrustLens</p>
+              <p className="text-lg font-semibold tracking-tight text-slate-900">
+                TrustLens
+              </p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-slate-500">
+                Trust intelligence
+              </p>
             </div>
           </Link>
 
-          <div className="hidden items-center gap-2 md:flex">
-            <Link href="/" className="rounded-full px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5 hover:text-white">Home</Link>
-            <Link href="#about" className="rounded-full px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5 hover:text-white">About</Link>
-            <Link href="#contact" className="rounded-full px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5 hover:text-white">Contact Us</Link>
+          <div className="hidden items-center gap-7 text-sm text-slate-600 lg:flex">
+            <Link href="#platform" className="transition hover:text-slate-900">
+              Platform
+            </Link>
+            <Link href="#about" className="transition hover:text-slate-900">
+              About
+            </Link>
+            <Link href="#contact" className="transition hover:text-slate-900">
+              Contact
+            </Link>
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/login" className="rounded-full border border-white/10 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/5">
-              Log in
+            <Link
+              href="/login"
+              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+            >
+              Sign in
             </Link>
-            <Link href="/signup" className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110">
-              Sign up free
+            <Link
+              href="/signup"
+              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+            >
+              Book a demo
             </Link>
           </div>
         </div>
       </nav>
 
-      <section className="relative overflow-hidden py-20 lg:py-32">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(239,68,68,0.12),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(34,211,238,0.12),_transparent_28%),linear-gradient(180deg,_rgba(15,23,42,1),_rgba(2,6,23,1))]" />
-        <div className="relative mx-auto max-w-7xl px-6">
-          <div className="text-center">
-            <div className="inline-flex rounded-full bg-red-500/10 px-4 py-2 text-sm font-semibold uppercase tracking-wider text-red-300">
-              Recruitment Fraud Detection & Trust Intelligence Platform
+      <section className="relative px-6 py-20 lg:px-8 lg:py-28">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="max-w-2xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
+              <Sparkles className="h-4 w-4" />
+              Trusted by modern hiring and compliance teams
             </div>
-            <h1 className="mt-8 text-5xl font-bold tracking-tight text-white sm:text-7xl">
-              TrustLens
+
+            <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+              Protect your hiring pipeline with calm, intelligent risk
+              detection.
             </h1>
-            <p className="mt-6 text-2xl text-slate-300 sm:text-3xl">
-              Detect Fake Jobs, Verify Recruiters, Protect Careers
+            <p className="mt-6 text-lg leading-8 text-slate-600 sm:text-xl">
+              TrustLens helps founders, recruiters, and institutions verify
+              opportunities, spot fraud patterns, and build credibility at scale
+              without slowing down growth.
             </p>
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-slate-400">
-              Advanced AI-powered platform for detecting recruitment scams, verifying companies and recruiters, and protecting job seekers from fraudulent activities.
-            </p>
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link href="/signup" className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-red-500/25 transition hover:brightness-110">
-                Get Started — It&apos;s Free
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-6 py-3.5 text-base font-semibold text-white transition hover:bg-slate-700"
+              >
+                Start free scan
+                <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/login" className="rounded-full border border-white/15 px-8 py-4 text-lg font-medium text-slate-200 transition hover:bg-white/5">
-                Log in
+              <Link
+                href="#about"
+                className="inline-flex items-center justify-center rounded-full border border-slate-300 px-6 py-3.5 text-base font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+              >
+                Explore platform
               </Link>
+            </div>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              {metrics.map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                >
+                  <p className="text-2xl font-semibold text-slate-900">
+                    {item.value}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+                    Signal overview
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+                    Confidence score: 94%
+                  </h2>
+                </div>
+                <div className="rounded-full bg-emerald-50 p-3 text-emerald-600">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-4">
+                {[
+                  { label: "Recruiter identity", value: "Verified" },
+                  { label: "Domain reputation", value: "Low risk" },
+                  { label: "Communication pattern", value: "Consistent" },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3"
+                  >
+                    <span className="text-sm text-slate-600">{item.label}</span>
+                    <span className="text-sm font-semibold text-slate-900">
+                      {item.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="about" className="border-t border-white/10 bg-slate-900/55 py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-red-300">About</p>
-            <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">A focused trust platform for recruitment safety.</h2>
-            <p className="mt-4 text-lg leading-8 text-slate-300">
-              TrustLens helps job seekers and institutions review risk signals, verify identities, and keep recruitment interactions safer.
+      <section
+        id="platform"
+        className="border-t border-slate-200 bg-white px-6 py-20 lg:px-8"
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Platform
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold text-slate-900 sm:text-4xl">
+              Designed for teams that value trust, speed, and clarity.
+            </h2>
+          </div>
+
+          <div className="mt-10 grid gap-6 lg:grid-cols-3">
+            {highlights.map((item, index) => {
+              const Icon = [Cpu, BarChart3, Users][index];
+              return (
+                <div
+                  key={item.title}
+                  className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-slate-100">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold text-slate-900">
+                    {item.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-slate-600">
+                    {item.text}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="about"
+        className="border-t border-slate-200 px-6 py-20 lg:px-8"
+      >
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+              About
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold text-slate-900 sm:text-4xl">
+              A professional foundation for safer hiring decisions.
+            </h2>
+          </div>
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-600 shadow-sm">
+            <p className="text-lg leading-8">
+              TrustLens gives organizations a practical way to verify the
+              people, companies, and communications behind every opportunity.
+              Whether you are scaling a startup or managing a large hiring
+              program, the platform brings clarity to decisions that affect
+              trust, reputation, and growth.
             </p>
           </div>
         </div>
       </section>
 
-      <section id="contact" className="border-t border-white/10 py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">Contact Us</p>
-              <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">Need access, support, or a demo?</h2>
-              <p className="mt-4 max-w-xl text-lg leading-8 text-slate-300">
-                Reach out for account access, institutional onboarding, or product questions.
+      <section
+        id="contact"
+        className="border-t border-slate-200 bg-slate-50 px-6 py-20 lg:px-8"
+      >
+        <div className="mx-auto max-w-5xl rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm lg:p-10">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+                Contact
+              </p>
+              <h2 className="mt-3 text-3xl font-semibold text-slate-900 sm:text-4xl">
+                Ready to make hiring safer and smarter?
+              </h2>
+              <p className="mt-4 text-lg leading-8 text-slate-600">
+                Let’s talk about your workflow, your compliance needs, and how
+                TrustLens can support your team.
               </p>
             </div>
-
-            <div className="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 shadow-2xl shadow-slate-950/40 backdrop-blur-xl sm:p-8">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-300">Name</span>
-                  <input className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-red-400/60 focus:ring-2 focus:ring-red-500/20" placeholder="Your name" />
-                </label>
-                <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-300">Email</span>
-                  <input className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-red-400/60 focus:ring-2 focus:ring-red-500/20" placeholder="you@example.com" />
-                </label>
-                <label className="space-y-2 sm:col-span-2">
-                  <span className="text-sm font-medium text-slate-300">Message</span>
-                  <textarea className="min-h-36 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-red-400/60 focus:ring-2 focus:ring-red-500/20" placeholder="Tell us what you need" />
-                </label>
-              </div>
-              <button className="mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-6 py-3 text-sm font-semibold text-white transition hover:brightness-110">
-                Send Message
-              </button>
-            </div>
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-6 py-3.5 text-base font-semibold text-white transition hover:bg-slate-700"
+            >
+              Request access
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
-
     </main>
   );
 }

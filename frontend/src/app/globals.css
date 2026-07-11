@@ -3,6 +3,13 @@
 :root {
   --background: #020617;
   --foreground: #e2e8f0;
+  --cyber-primary: #00f5ff;
+  --cyber-secondary: #ff6b35;
+  --cyber-accent: #ff0040;
+  --cyber-dark: #0a0e27;
+  --cyber-darker: #050710;
+  --cyber-grid: rgba(0, 245, 255, 0.03);
+  --cyber-glow: rgba(0, 245, 255, 0.4);
 }
 
 @theme inline {
@@ -23,4 +30,56 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Cyber Aesthetic Global Styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyber-primary) var(--cyber-dark);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--cyber-dark);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--cyber-primary), var(--cyber-secondary));
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--cyber-secondary), var(--cyber-accent));
+}
+
+.cyber-grid-bg {
+  background-image: 
+    linear-gradient(var(--cyber-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cyber-grid) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.cyber-border {
+  border: 1px solid rgba(0, 245, 255, 0.2);
+  box-shadow: 
+    0 0 5px rgba(0, 245, 255, 0.1),
+    inset 0 0 5px rgba(0, 245, 255, 0.05);
+}
+
+.cyber-text-glow {
+  text-shadow: 
+    0 0 10px rgba(0, 245, 255, 0.5),
+    0 0 20px rgba(0, 245, 255, 0.3),
+    0 0 30px rgba(0, 245, 255, 0.2);
+}
+
+.cyber-box-glow {
+  box-shadow: 
+    0 0 15px rgba(0, 245, 255, 0.3),
+    0 0 30px rgba(0, 245, 255, 0.2),
+    0 0 45px rgba(0, 245, 255, 0.1);
 }

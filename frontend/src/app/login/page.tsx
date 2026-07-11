@@ -73,25 +73,25 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-slate-950 text-slate-100">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(239,68,68,0.18),_transparent_32%),radial-gradient(circle_at_top_right,_rgba(34,211,238,0.12),_transparent_28%),linear-gradient(180deg,_rgba(15,23,42,1),_rgba(2,6,23,1))]" />
+    <main className="min-h-screen overflow-hidden bg-slate-950 text-slate-100 cyber-grid-bg">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(0,245,255,0.15),_transparent_35%),radial-gradient(circle_at_top_right,_rgba(255,107,53,0.12),_transparent_30%),radial-gradient(circle_at_bottom,_rgba(255,0,64,0.08),_transparent_25%),linear-gradient(180deg,_rgba(15,23,42,1),_rgba(2,6,23,1))]\" />
       <div className="relative">
-        <header className="border-b border-white/10 bg-slate-950/55 backdrop-blur-xl">
+        <header className="border-b border-cyan-500/20 bg-slate-950/55 backdrop-blur-xl cyber-border">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
             <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-orange-500 text-white shadow-lg shadow-red-500/20">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-orange-500 text-white shadow-lg shadow-cyan-500/40">
                 <ShieldCheck className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-lg font-bold text-white">TrustLens</p>
+                <p className="text-lg font-bold text-white cyber-text-glow">TrustLens</p>
               </div>
             </Link>
 
             <div className="hidden items-center gap-3 sm:flex">
-              <Link href="/signup" className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110">
+              <Link href="/signup" className="rounded-full bg-gradient-to-r from-cyan-500 to-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 cyber-pulse">
                 Sign up
               </Link>
-              <Link href="/" className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5">
+              <Link href="/" className="rounded-full border border-cyan-500/30 px-4 py-2 text-sm font-medium text-cyan-300 transition hover:bg-cyan-500/10 cyber-border">
                 Back home
               </Link>
             </div>
@@ -100,8 +100,8 @@ export default function LoginPage() {
 
         <section className="mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl gap-10 px-6 py-10 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:px-8 lg:py-16">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">
-              <Users className="h-4 w-4 text-red-300" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 cyber-border">
+              <Users className="h-4 w-4 text-cyan-300" />
               One secure login for both access types
             </div>
 
@@ -113,16 +113,16 @@ export default function LoginPage() {
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur">
+              <div className="rounded-2xl border border-cyan-500/20 bg-slate-900/70 p-5 backdrop-blur cyber-border">
                 <div className="flex items-center gap-3 text-white">
                   <Building2 className="h-5 w-5 text-cyan-300" />
                   <span className="font-semibold">Institution</span>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-slate-400">For placement offices, HR, and compliance teams.</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur">
+              <div className="rounded-2xl border border-orange-500/20 bg-slate-900/70 p-5 backdrop-blur cyber-border">
                 <div className="flex items-center gap-3 text-white">
-                  <UserRound className="h-5 w-5 text-red-300" />
+                  <UserRound className="h-5 w-5 text-orange-300" />
                   <span className="font-semibold">User</span>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-slate-400">For candidates and job seekers using the trust tools.</p>
@@ -130,8 +130,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/85 p-6 shadow-2xl shadow-slate-950/40 backdrop-blur-xl sm:p-8">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-400 via-orange-500 to-cyan-400" />
+          <section className="relative overflow-hidden rounded-[2rem] border border-cyan-500/20 bg-slate-900/85 p-6 shadow-2xl shadow-cyan-500/10 backdrop-blur-xl sm:p-8 cyber-border">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-400 via-orange-500 to-red-400" />
             <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
 
             <div className="relative flex items-start gap-4">
@@ -149,7 +149,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-slate-800/80 hover:border-white/20"
+                className="flex w-full items-center justify-center gap-3 rounded-2xl border border-cyan-500/30 bg-slate-950/70 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-cyan-500/10 hover:border-cyan-500/50 cyber-border"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -163,16 +163,16 @@ export default function LoginPage() {
 
             {/* Divider */}
             <div className="relative mt-6 flex items-center gap-4">
-              <div className="h-px flex-1 bg-white/10" />
-              <span className="text-xs font-medium uppercase tracking-widest text-slate-500">or</span>
-              <div className="h-px flex-1 bg-white/10" />
+              <div className="h-px flex-1 bg-cyan-500/20" />
+              <span className="text-xs font-medium uppercase tracking-widest text-cyan-400">or</span>
+              <div className="h-px flex-1 bg-cyan-500/20" />
             </div>
 
             <form className="relative mt-6 space-y-4" onSubmit={handleSubmit}>
               {/* Role selector cards */}
               <div className="space-y-2">
-                <span className="flex items-center gap-2 text-sm font-medium text-slate-300">
-                  <UserRound className="h-4 w-4 text-slate-400" />
+                <span className="flex items-center gap-2 text-sm font-bold text-cyan-300">
+                  <UserRound className="h-4 w-4 text-cyan-400" />
                   Select role
                 </span>
                 <div className="grid grid-cols-2 gap-3">
@@ -181,8 +181,8 @@ export default function LoginPage() {
                     onClick={() => setRole('institution')}
                     className={`flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition ${
                       role === 'institution'
-                        ? 'border-cyan-400/60 bg-cyan-500/10 ring-1 ring-cyan-400/20'
-                        : 'border-white/10 bg-slate-950/70 hover:border-white/20 hover:bg-slate-800/50'
+                        ? 'border-cyan-400/60 bg-cyan-500/10 ring-1 ring-cyan-400/20 cyber-border'
+                        : 'border-cyan-500/20 bg-slate-950/70 hover:border-cyan-500/40 hover:bg-cyan-500/10 cyber-border'
                     }`}
                   >
                     <div className="flex items-center gap-2 font-semibold text-sm text-white">
@@ -196,8 +196,8 @@ export default function LoginPage() {
                     onClick={() => setRole('user')}
                     className={`flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition ${
                       role === 'user'
-                        ? 'border-red-400/60 bg-red-500/10 ring-1 ring-red-400/20'
-                        : 'border-white/10 bg-slate-950/70 hover:border-white/20 hover:bg-slate-800/50'
+                        ? 'border-orange-400/60 bg-orange-500/10 ring-1 ring-orange-400/20 cyber-border'
+                        : 'border-cyan-500/20 bg-slate-950/70 hover:border-cyan-500/40 hover:bg-cyan-500/10 cyber-border'
                     }`}
                   >
                     <div className="flex items-center gap-2 font-semibold text-sm text-white">
@@ -210,8 +210,8 @@ export default function LoginPage() {
               </div>
 
               <label className="block space-y-2">
-                <span className="flex items-center gap-2 text-sm font-medium text-slate-300">
-                  <Mail className="h-4 w-4 text-slate-400" />
+                <span className="flex items-center gap-2 text-sm font-bold text-cyan-300">
+                  <Mail className="h-4 w-4 text-cyan-400" />
                   Email address
                 </span>
                 <input
@@ -220,13 +220,13 @@ export default function LoginPage() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="name@company.com"
-                  className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-red-400/60 focus:ring-2 focus:ring-red-500/20"
+                  className="w-full rounded-2xl border border-cyan-500/30 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 cyber-border"
                 />
               </label>
 
               <label className="block space-y-2">
-                <span className="flex items-center gap-2 text-sm font-medium text-slate-300">
-                  <LockKeyhole className="h-4 w-4 text-slate-400" />
+                <span className="flex items-center gap-2 text-sm font-bold text-cyan-300">
+                  <LockKeyhole className="h-4 w-4 text-cyan-400" />
                   Password
                 </span>
                 <div className="relative">
@@ -236,7 +236,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter your password"
-                    className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-red-400/60 focus:ring-2 focus:ring-red-500/20"
+                    className="w-full rounded-2xl border border-cyan-500/30 bg-slate-950/70 px-4 py-3 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 cyber-border"
                   />
                   <button
                     type="button"
@@ -249,17 +249,17 @@ export default function LoginPage() {
               </label>
 
               {errorMessage ? (
-                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200 cyber-border">
                   {errorMessage}
                 </div>
               ) : null}
 
               <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 text-slate-400">
-                  <input type="checkbox" className="h-4 w-4 rounded border-white/20 bg-slate-950 text-red-500 focus:ring-red-500/30" />
+                <label className="flex items-center gap-2 text-cyan-400">
+                  <input type="checkbox" className="h-4 w-4 rounded border-cyan-500/30 bg-slate-950 text-cyan-500 focus:ring-cyan-500/30" />
                   Remember me
                 </label>
-                <Link href="#" className="font-medium text-red-300 transition hover:text-red-200">
+                <Link href="#" className="font-medium text-cyan-300 transition hover:text-cyan-200">
                   Forgot password?
                 </Link>
               </div>
@@ -267,7 +267,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-orange-500 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/50 transition hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed cyber-pulse"
               >
                 {isLoading ? (
                   <>
@@ -287,7 +287,7 @@ export default function LoginPage() {
 
               <p className="text-center text-sm text-slate-400">
                 Don&apos;t have an account?{' '}
-                <Link href="/signup" className="font-medium text-red-300 transition hover:text-red-200">
+                <Link href="/signup" className="font-medium text-cyan-300 transition hover:text-cyan-200">
                   Sign up
                 </Link>
               </p>
