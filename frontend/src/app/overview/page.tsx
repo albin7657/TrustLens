@@ -41,30 +41,37 @@ export default function Overview() {
   const displayName = user?.full_name || user?.email?.split('@')[0] || 'there';
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
-      <div className="mx-auto max-w-6xl">
-        <h1 className="mb-2 text-3xl font-semibold text-slate-900">Welcome back, {displayName}.</h1>
-        <p className="mb-8 text-slate-600">
-          Here&apos;s every trust and fraud-detection tool available to you. Pick one to get started.
+    <div className="min-h-screen bg-[#f5f7fb] p-8 lg:p-12 text-slate-800">
+      <div className="mx-auto max-w-7xl">
+        <h1 className="mb-3 text-4xl font-bold tracking-tight text-slate-900">Welcome back, {displayName}.</h1>
+        <p className="mb-10 text-lg text-slate-600 max-w-2xl">
+          Access the complete suite of trust and fraud-detection tools. Select a module below to begin your analysis.
         </p>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {MODULES.map((mod) => {
             const Icon = mod.icon;
             return (
               <Link
                 key={mod.href}
                 href={mod.href}
-                className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+                className="group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-slate-300/80 hover:bg-white/90 hover:shadow-xl"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                  <Icon className="h-5 w-5" />
+                <div className="absolute -right-6 -top-6 opacity-[0.03] transition-opacity duration-300 group-hover:opacity-[0.08]">
+                  <Icon className="h-32 w-32" />
                 </div>
-                <h3 className="mt-4 flex items-center gap-1.5 font-semibold text-slate-900">
-                  {mod.title}
-                  <ArrowRight className="h-4 w-4 text-slate-400 opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
-                </h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{mod.description}</p>
+                
+                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 shadow-inner group-hover:from-indigo-50 group-hover:to-indigo-100 group-hover:text-indigo-600 transition-colors">
+                  <Icon className="h-6 w-6" />
+                </div>
+                
+                <div className="relative z-10 mt-6">
+                  <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 tracking-tight">
+                    {mod.title}
+                    <ArrowRight className="h-4 w-4 text-indigo-500 opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100" />
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600 line-clamp-2">{mod.description}</p>
+                </div>
               </Link>
             );
           })}

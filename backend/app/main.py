@@ -11,6 +11,7 @@ from app.jobs import router as jobs_router
 from app.companies import router as companies_router
 from app.recruiters import router as recruiters_router
 from app.repository import router as repository_router
+from app.scanner import router as scanner_router
 
 app = FastAPI(
     title="TrustLens API",
@@ -20,11 +21,13 @@ app = FastAPI(
 
 # ── CORS ─────────────────────────────────────────────────────────────────────
 # Allow localhost on ports 3000-3010 so Next.js auto-port-switching never breaks CORS
-_localhost_origins = [f"http://localhost:{port}" for port in range(3000, 3011)]
+_localhost_origins = [f"http://localhost:{port}" for port in range(3000, 3011)] + [f"http://127.0.0.1:{port}" for port in range(3000, 3011)]
+print("FRONTEND_URL REPR:", repr(settings.FRONTEND_URL))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL] + _localhost_origins,
+    allow_origins=[o.strip() for o in [settings.FRONTEND_URL] + _localhost_origins],
+    allow_origin_regex=".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,6 +39,7 @@ app.include_router(jobs_router)
 app.include_router(companies_router)
 app.include_router(recruiters_router)
 app.include_router(repository_router)
+app.include_router(scanner_router)
 
 
 # ── Health Check ─────────────────────────────────────────────────────────────

@@ -30,5 +30,10 @@ class Settings:
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
     BACKEND_URL: str = os.getenv("BACKEND_URL", "http://localhost:8000")
 
+    # Models
+    FAKE_JOB_MODEL_PATH: str = os.getenv("FAKE_JOB_MODEL_PATH", r"C:\Users\Albin Thomas\Downloads\fake_job_model\fake_job_model")
+    EMAIL_MODEL_PATH: str = os.getenv("EMAIL_MODEL_PATH", r"C:\Users\Albin Thomas\Downloads\email_model\email_model")
+
+
 
 settings = Settings()
