@@ -2,10 +2,21 @@
 
 import { useState } from 'react';
 
+interface MatchedCase {
+  id: number;
+  type: string;
+  similarity: number;
+}
+
+interface SimilarityResults {
+  similarityScore: number;
+  matchedCases: MatchedCase[];
+}
+
 export default function ScamSimilarity() {
   const [jobPosting, setJobPosting] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<SimilarityResults | null>(null);
 
   const handleCompare = () => {
     setIsAnalyzing(true);
@@ -23,26 +34,26 @@ export default function ScamSimilarity() {
   };
 
   return (
-    <div className="p-8">
+    <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-2">Scam Similarity Detection</h1>
-        <p className="text-slate-400 mb-8">Compare job postings against known scam patterns</p>
+        <h1 className="text-3xl font-semibold text-slate-900 mb-2">Scam Similarity Detection</h1>
+        <p className="text-slate-500 mb-8">Compare job postings against known scam patterns</p>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-              <label className="block text-sm font-medium text-white mb-3">Paste Job Posting</label>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <label className="block text-sm font-semibold text-slate-900 mb-3">Paste Job Posting</label>
               <textarea
                 value={jobPosting}
                 onChange={(e) => setJobPosting(e.target.value)}
                 placeholder="Paste the job posting to compare..."
                 rows={10}
-                className="w-full rounded-xl bg-slate-950/60 border border-white/10 px-4 py-3 text-white placeholder-slate-500 focus:border-red-500 focus:outline-none resize-none mb-4"
+                className="w-full rounded-2xl bg-white border border-slate-300 px-4 py-3 text-slate-800 placeholder-slate-400 focus:border-slate-500 focus:outline-none resize-none mb-4"
               />
               <button
                 onClick={handleCompare}
                 disabled={isAnalyzing || !jobPosting}
-                className="w-full rounded-xl bg-red-500 px-6 py-3 text-white font-semibold transition-colors hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-2xl bg-slate-900 px-6 py-3 text-white font-semibold transition hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAnalyzing ? 'Comparing...' : 'Compare'}
               </button>
@@ -52,71 +63,59 @@ export default function ScamSimilarity() {
           <div className="space-y-6">
             {results ? (
               <>
-                <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Similarity Score</h3>
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Similarity Score</h3>
                   <div className="relative h-32">
                     <svg className="h-32 w-32 transform -rotate-90">
+                      <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200" />
                       <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        fill="transparent"
-                        className="text-slate-800"
-                      />
-                      <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        fill="transparent"
+                        cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="transparent"
                         strokeDasharray={`${results.similarityScore * 3.52} 352`}
                         className="text-red-500"
+                        strokeLinecap="round"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-3xl font-bold text-white">{results.similarityScore}%</span>
+                      <span className="text-3xl font-bold text-slate-900">{results.similarityScore}%</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Matched Cases</h3>
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Matched Cases</h3>
                   <div className="space-y-3">
-                    {results.matchedCases.map((caseItem: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between rounded-lg bg-slate-950/60 px-4 py-3">
+                    {results.matchedCases.map((caseItem, index) => (
+                      <div key={index} className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
                         <div>
-                          <p className="text-white font-medium">Case #{caseItem.id}</p>
-                          <p className="text-sm text-slate-400">{caseItem.type}</p>
+                          <p className="text-slate-900 font-medium">Case #{caseItem.id}</p>
+                          <p className="text-sm text-slate-500">{caseItem.type}</p>
                         </div>
-                        <span className="text-red-400 font-semibold">{caseItem.similarity}%</span>
+                        <span className="text-red-600 font-semibold">{caseItem.similarity}%</span>
                       </div>
                     ))}
                   </div>
                 </div>
               </>
             ) : (
-              <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-12 text-center">
+              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
                 <div className="text-6xl mb-4">🧠</div>
-                <h3 className="text-xl font-semibold text-white mb-2">No Comparison Yet</h3>
-                <p className="text-slate-400">Paste a job posting and click "Compare" to see similarity results</p>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">No Comparison Yet</h3>
+                <p className="text-slate-500">Paste a job posting and click &quot;Compare&quot; to see similarity results</p>
               </div>
             )}
           </div>
         </div>
 
         {results && (
-          <div className="mt-8 rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Similarity Heatmap</h3>
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Similarity Heatmap</h3>
             <div className="grid grid-cols-10 gap-1">
               {Array.from({ length: 50 }).map((_, i) => (
                 <div
                   key={i}
                   className="h-8 rounded"
                   style={{
-                    backgroundColor: `rgba(239, 68, 68, ${Math.random() * 0.8 + 0.2})`
+                    backgroundColor: `rgba(239, 68, 68, ${((i * 37) % 80 + 20) / 100})`
                   }}
                 />
               ))}

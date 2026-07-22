@@ -46,7 +46,7 @@ function CallbackHandler() {
           })
           .catch(() => {/* non-fatal — token is still stored */})
           .finally(() => {
-            router.push('/institutional-dashboard');
+            router.push('/overview');
           });
         return;
       }
@@ -75,7 +75,7 @@ function CallbackHandler() {
         localStorage.setItem('refresh_token', data.refresh_token);
         localStorage.setItem('user', JSON.stringify(data.user));
 
-        router.push('/institutional-dashboard');
+        router.push('/overview');
       } catch {
         setError('Could not connect to the server. Please try again.');
       }
@@ -85,30 +85,26 @@ function CallbackHandler() {
   }, [searchParams, router]);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-slate-950 text-slate-100">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(239,68,68,0.18),_transparent_32%),radial-gradient(circle_at_top_right,_rgba(34,211,238,0.12),_transparent_28%),linear-gradient(180deg,_rgba(15,23,42,1),_rgba(2,6,23,1))]" />
-
-      <div className="relative flex min-h-screen items-center justify-center px-6">
-        <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/85 p-8 shadow-2xl shadow-slate-950/40 backdrop-blur-xl text-center">
-          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-400 via-orange-500 to-cyan-400" />
-
+    <main className="min-h-screen bg-[#f5f7fb] text-slate-800">
+      <div className="flex min-h-screen items-center justify-center px-6">
+        <div className="w-full max-w-md rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm text-center">
           {error ? (
             <>
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-500/15 mb-6">
-                <AlertCircle className="h-8 w-8 text-red-400" />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
+                <AlertCircle className="h-8 w-8 text-red-500" />
               </div>
-              <h2 className="text-2xl font-bold text-white">Authentication Failed</h2>
-              <p className="mt-4 text-slate-300">{error}</p>
+              <h2 className="text-2xl font-semibold text-slate-900">Authentication Failed</h2>
+              <p className="mt-4 text-slate-600">{error}</p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition hover:brightness-110"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
                 >
                   Back to Login
                 </Link>
                 <Link
                   href="/signup"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 px-6 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/5"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 px-6 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
                 >
                   Sign up
                 </Link>
@@ -116,13 +112,13 @@ function CallbackHandler() {
             </>
           ) : (
             <>
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-800/80 mb-6">
-                <ShieldCheck className="h-8 w-8 text-red-400 animate-pulse" />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+                <ShieldCheck className="h-8 w-8 animate-pulse text-slate-700" />
               </div>
-              <h2 className="text-2xl font-bold text-white">Authenticating</h2>
-              <p className="mt-4 text-slate-300">Completing your sign-in, please wait...</p>
+              <h2 className="text-2xl font-semibold text-slate-900">Authenticating</h2>
+              <p className="mt-4 text-slate-600">Completing your sign-in, please wait...</p>
               <div className="mt-6 flex justify-center">
-                <Loader2 className="h-6 w-6 text-red-400 animate-spin" />
+                <Loader2 className="h-6 w-6 animate-spin text-slate-500" />
               </div>
             </>
           )}
@@ -136,8 +132,8 @@ export default function AuthCallbackPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
-          <Loader2 className="h-8 w-8 animate-spin text-red-400" />
+        <main className="flex min-h-screen items-center justify-center bg-[#f5f7fb]">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
         </main>
       }
     >

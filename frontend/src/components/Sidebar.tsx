@@ -9,7 +9,7 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 const menuItems = [
-  { icon: "🏠", label: "Overview", href: "/" },
+  { icon: "🏠", label: "Overview", href: "/overview" },
   { icon: "🔎", label: "Fraud Scanner", href: "/job-scanner" },
   {
     icon: "👤",

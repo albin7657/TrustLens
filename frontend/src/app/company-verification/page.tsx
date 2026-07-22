@@ -1,47 +1,65 @@
 'use client';
 
 import { useState } from 'react';
+import { Building2, ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react';
+import { verifyCompany, CompanyVerifyResult } from '@/lib/api';
+import SignalBreakdown from '@/components/SignalBreakdown';
+
+const STATUS_STYLES = {
+  verified: { label: 'Verified', ring: 'text-emerald-500', text: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', icon: ShieldCheck },
+  suspicious: { label: 'Suspicious', ring: 'text-red-500', text: 'text-red-600', bg: 'bg-red-50 border-red-200', icon: ShieldAlert },
+  unverified: { label: 'Unverified', ring: 'text-amber-500', text: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', icon: ShieldQuestion },
+} as const;
 
 export default function CompanyVerification() {
   const [website, setWebsite] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<CompanyVerifyResult | null>(null);
+  const [error, setError] = useState('');
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     setIsVerifying(true);
-    setTimeout(() => {
-      setResults({
-        trustScore: 92,
-        domainAge: 8,
-        sslStatus: 'Valid',
-        ownership: 'Verified'
-      });
+    setError('');
+    try {
+      const result = await verifyCompany(website);
+      setResults(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to verify company.');
+    } finally {
       setIsVerifying(false);
-    }, 2000);
+    }
   };
 
+  const status = results ? STATUS_STYLES[results.status] : null;
+  const StatusIcon = status?.icon ?? Building2;
+
   return (
-    <div className="p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-2">Company Verification</h1>
-        <p className="text-slate-400 mb-8">Verify company authenticity and trustworthiness</p>
+    <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
+      <div className="mx-auto max-w-6xl">
+        <h1 className="mb-2 text-3xl font-semibold text-slate-900">Company Verification</h1>
+        <p className="mb-8 text-slate-600">Verify company authenticity using domain, WHOIS, and SSL trust signals.</p>
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Input Section */}
           <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-              <label className="block text-sm font-medium text-white mb-3">Company Website</label>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <label className="mb-3 block text-sm font-semibold text-slate-900">Company Website</label>
               <input
-                type="url"
+                type="text"
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://www.company.com"
-                className="w-full rounded-xl bg-slate-950/60 border border-white/10 px-4 py-3 text-white placeholder-slate-500 focus:border-red-500 focus:outline-none mb-4"
+                placeholder="www.company.com"
+                className="mb-4 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-800 placeholder-slate-400 focus:border-slate-500 focus:outline-none"
               />
+
+              {error ? (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+              ) : null}
+
               <button
                 onClick={handleVerify}
-                disabled={isVerifying || !website}
-                className="w-full rounded-xl bg-red-500 px-6 py-3 text-white font-semibold transition-colors hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isVerifying || !website.trim()}
+                className="w-full rounded-2xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isVerifying ? 'Verifying...' : 'Verify Company'}
               </button>
@@ -50,142 +68,54 @@ export default function CompanyVerification() {
 
           {/* Results Section */}
           <div className="space-y-6">
-            {results ? (
+            {results && status ? (
               <>
-                <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Company Trust Score</h3>
-                  <div className="relative h-32">
-                    <svg className="h-32 w-32 transform -rotate-90">
-                      <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        fill="transparent"
-                        className="text-slate-800"
-                      />
-                      <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        fill="transparent"
-                        strokeDasharray={`${results.trustScore * 3.52} 352`}
-                        className="text-green-500"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-3xl font-bold text-white">{results.trustScore}%</span>
+                <div className={`rounded-2xl border p-6 shadow-sm ${status.bg}`}>
+                  <h3 className="mb-4 text-lg font-semibold text-slate-900">Company Trust Score</h3>
+                  <div className="flex items-center gap-6">
+                    <div className="relative h-32 w-32">
+                      <svg className="h-32 w-32 -rotate-90 transform">
+                        <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200" />
+                        <circle
+                          cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="transparent"
+                          strokeDasharray={`${results.trust_score * 3.52} 352`}
+                          className={status.ring}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-2xl font-bold text-slate-900">{Math.round(results.trust_score)}%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500">Status</p>
+                      <p className={`flex items-center gap-2 text-2xl font-bold ${status.text}`}>
+                        <StatusIcon className="h-6 w-6" />
+                        {status.label}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500">{results.domain}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Verification Details</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between rounded-lg bg-slate-950/60 px-4 py-3">
-                      <span className="text-slate-300">Domain Age</span>
-                      <span className="font-semibold text-white">{results.domainAge} Years</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg bg-slate-950/60 px-4 py-3">
-                      <span className="text-slate-300">SSL Status</span>
-                      <span className={`font-semibold ${results.sslStatus === 'Valid' ? 'text-green-400' : 'text-red-400'}`}>
-                        {results.sslStatus === 'Valid' ? '✅ Valid' : '❌ Invalid'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg bg-slate-950/60 px-4 py-3">
-                      <span className="text-slate-300">Ownership</span>
-                      <span className={`font-semibold ${results.ownership === 'Verified' ? 'text-green-400' : 'text-red-400'}`}>
-                        {results.ownership === 'Verified' ? '✅ Verified' : '❌ Not Verified'}
-                      </span>
-                    </div>
-                  </div>
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h3 className="mb-4 text-lg font-semibold text-slate-900">Signal Breakdown</h3>
+                  <p className="mb-4 text-xs text-slate-500">
+                    WHOIS domain age, SSL certificate validity, security headers, typosquatting risk, and any
+                    internal database record — each scored independently and combined into the trust score above.
+                  </p>
+                  <SignalBreakdown signals={results.signal_breakdown} />
                 </div>
               </>
             ) : (
-              <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-12 text-center">
-                <div className="text-6xl mb-4">🏢</div>
-                <h3 className="text-xl font-semibold text-white mb-2">No Verification Yet</h3>
-                <p className="text-slate-400">Enter company website and click "Verify Company" to see the results</p>
+              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+                <div className="mb-4 text-6xl">🏢</div>
+                <h3 className="mb-2 text-xl font-semibold text-slate-900">No Verification Yet</h3>
+                <p className="text-slate-500">Enter a company website and click &quot;Verify Company&quot; to see the results</p>
               </div>
             )}
           </div>
         </div>
-
-        {/* Visual Components */}
-        {results && (
-          <div className="mt-8 grid gap-6 lg:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Trust Meter</h3>
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-4 rounded-full bg-slate-800">
-                    <div className="h-4 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500" style={{ width: `${results.trustScore}%` }}></div>
-                  </div>
-                  <span className="text-sm font-semibold text-white">{results.trustScore}%</span>
-                </div>
-                <div className="flex justify-between text-xs text-slate-500">
-                  <span>Low Trust</span>
-                  <span>High Trust</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Domain Age Timeline</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="text-xs text-slate-500 w-12">0-2yr</div>
-                  <div className="flex-1 h-2 rounded-full bg-slate-800">
-                    <div className="h-2 rounded-full bg-red-500" style={{ width: '15%' }}></div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-xs text-slate-500 w-12">2-5yr</div>
-                  <div className="flex-1 h-2 rounded-full bg-slate-800">
-                    <div className="h-2 rounded-full bg-orange-500" style={{ width: '25%' }}></div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-xs text-slate-500 w-12">5-10yr</div>
-                  <div className="flex-1 h-2 rounded-full bg-slate-800">
-                    <div className="h-2 rounded-full bg-green-500" style={{ width: '40%' }}></div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-xs text-slate-500 w-12">10yr+</div>
-                  <div className="flex-1 h-2 rounded-full bg-slate-800">
-                    <div className="h-2 rounded-full bg-green-400" style={{ width: '20%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Verification Status</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 rounded-lg bg-green-500/10 px-4 py-3">
-                  <span className="text-green-400">✅</span>
-                  <span className="text-white">Business Registration</span>
-                </div>
-                <div className="flex items-center gap-3 rounded-lg bg-green-500/10 px-4 py-3">
-                  <span className="text-green-400">✅</span>
-                  <span className="text-white">Contact Information</span>
-                </div>
-                <div className="flex items-center gap-3 rounded-lg bg-yellow-500/10 px-4 py-3">
-                  <span className="text-yellow-400">⚠️</span>
-                  <span className="text-white">Social Media Presence</span>
-                </div>
-                <div className="flex items-center gap-3 rounded-lg bg-green-500/10 px-4 py-3">
-                  <span className="text-green-400">✅</span>
-                  <span className="text-white">Physical Address</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

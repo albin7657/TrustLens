@@ -7,6 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.auth import router as auth_router
+from app.jobs import router as jobs_router
+from app.companies import router as companies_router
+from app.recruiters import router as recruiters_router
+from app.repository import router as repository_router
 
 app = FastAPI(
     title="TrustLens API",
@@ -28,6 +32,10 @@ app.add_middleware(
 
 # ── Routers ──────────────────────────────────────────────────────────────────
 app.include_router(auth_router)
+app.include_router(jobs_router)
+app.include_router(companies_router)
+app.include_router(recruiters_router)
+app.include_router(repository_router)
 
 
 # ── Health Check ─────────────────────────────────────────────────────────────
@@ -48,4 +56,5 @@ async def health():
         "status": "healthy",
         "supabase_configured": bool(settings.SUPABASE_URL and settings.SUPABASE_ANON_KEY),
         "google_oauth_configured": bool(settings.GOOGLE_CLIENT_ID),
+        "gemini_configured": bool(settings.GEMINI_API_KEY),
     }

@@ -23,20 +23,20 @@ export default function ReportingAssistant() {
   };
 
   return (
-    <div className="p-8">
+    <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-2">Fraud Reporting Assistance</h1>
-        <p className="text-slate-400 mb-8">Generate comprehensive fraud reports for cybercrime reporting</p>
+        <h1 className="text-3xl font-semibold text-slate-900 mb-2">Fraud Reporting Assistance</h1>
+        <p className="text-slate-500 mb-8">Generate comprehensive fraud reports for cybercrime reporting</p>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Generate Report</h3>
-              <label className="block text-sm font-medium text-white mb-3">Select Case</label>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Generate Report</h3>
+              <label className="block text-sm font-semibold text-slate-900 mb-3">Select Case</label>
               <select
                 value={selectedCase}
                 onChange={(e) => setSelectedCase(e.target.value)}
-                className="w-full rounded-xl bg-slate-950/60 border border-white/10 px-4 py-3 text-white focus:border-red-500 focus:outline-none mb-4"
+                className="w-full rounded-2xl bg-white border border-slate-300 px-4 py-3 text-slate-800 focus:border-slate-500 focus:outline-none mb-4"
               >
                 <option value="">Select a case...</option>
                 {cases.map((caseItem) => (
@@ -48,7 +48,7 @@ export default function ReportingAssistant() {
               <button
                 onClick={handleGenerate}
                 disabled={isGenerating || !selectedCase}
-                className="w-full rounded-xl bg-red-500 px-6 py-3 text-white font-semibold transition-colors hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-2xl bg-slate-900 px-6 py-3 text-white font-semibold transition hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isGenerating ? 'Generating...' : 'Generate PDF'}
               </button>
@@ -57,43 +57,43 @@ export default function ReportingAssistant() {
 
           <div className="space-y-6">
             {reportGenerated ? (
-              <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Report Generated Successfully</h3>
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Report Generated Successfully</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 rounded-lg bg-green-500/10 px-4 py-3">
-                    <span className="text-green-400">✓</span>
-                    <span className="text-white">Evidence Summary</span>
+                  <div className="flex items-center gap-3 rounded-lg bg-emerald-50 px-4 py-3">
+                    <span className="text-emerald-600">✓</span>
+                    <span className="text-slate-900">Evidence Summary</span>
                   </div>
-                  <div className="flex items-center gap-3 rounded-lg bg-green-500/10 px-4 py-3">
-                    <span className="text-green-400">✓</span>
-                    <span className="text-white">Complaint Summary</span>
+                  <div className="flex items-center gap-3 rounded-lg bg-emerald-50 px-4 py-3">
+                    <span className="text-emerald-600">✓</span>
+                    <span className="text-slate-900">Complaint Summary</span>
                   </div>
-                  <div className="flex items-center gap-3 rounded-lg bg-green-500/10 px-4 py-3">
-                    <span className="text-green-400">✓</span>
-                    <span className="text-white">Cybercrime Reporting Guide</span>
+                  <div className="flex items-center gap-3 rounded-lg bg-emerald-50 px-4 py-3">
+                    <span className="text-emerald-600">✓</span>
+                    <span className="text-slate-900">Cybercrime Reporting Guide</span>
                   </div>
                 </div>
 
                 <div className="mt-6">
-                  <h4 className="text-md font-semibold text-white mb-3">Export Options</h4>
+                  <h4 className="text-md font-semibold text-slate-900 mb-3">Export Options</h4>
                   <div className="flex gap-3">
-                    <button className="flex-1 rounded-xl bg-red-500/20 px-4 py-3 text-red-300 hover:bg-red-500/30 transition-colors">
+                    <button className="flex-1 rounded-2xl bg-red-50 px-4 py-3 text-red-700 border border-red-200 hover:bg-red-100 transition-colors">
                       PDF
                     </button>
-                    <button className="flex-1 rounded-xl bg-blue-500/20 px-4 py-3 text-blue-300 hover:bg-blue-500/30 transition-colors">
+                    <button className="flex-1 rounded-2xl bg-blue-50 px-4 py-3 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors">
                       DOCX
                     </button>
-                    <button className="flex-1 rounded-xl bg-green-500/20 px-4 py-3 text-green-300 hover:bg-green-500/30 transition-colors">
+                    <button className="flex-1 rounded-2xl bg-emerald-50 px-4 py-3 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors">
                       CSV
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-12 text-center">
+              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
                 <div className="text-6xl mb-4">📄</div>
-                <h3 className="text-xl font-semibold text-white mb-2">No Report Generated</h3>
-                <p className="text-slate-400">Select a case and click "Generate PDF" to create a comprehensive fraud report</p>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">No Report Generated</h3>
+                <p className="text-slate-500">Select a case and click &quot;Generate PDF&quot; to create a comprehensive fraud report</p>
               </div>
             )}
           </div>

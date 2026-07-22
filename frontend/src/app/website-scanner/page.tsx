@@ -1,49 +1,67 @@
 'use client';
 
 import { useState } from 'react';
+import { Globe, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { verifyCompany, CompanyVerifyResult } from '@/lib/api';
+
+function checkVisual(score: number) {
+  if (score < 30) return { icon: CheckCircle2, className: 'text-emerald-500', label: 'Low risk' };
+  if (score < 65) return { icon: AlertTriangle, className: 'text-amber-500', label: 'Caution' };
+  return { icon: XCircle, className: 'text-red-500', label: 'High risk' };
+}
+
+function formatSignalLabel(name: string) {
+  return name.replace(/^[a-z_]+:/, '').replace(/_/g, ' ');
+}
 
 export default function WebsiteScanner() {
   const [url, setUrl] = useState('');
   const [isScanning, setIsScanning] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<CompanyVerifyResult | null>(null);
+  const [error, setError] = useState('');
 
-  const handleScan = () => {
+  const handleScan = async () => {
     setIsScanning(true);
-    setTimeout(() => {
-      setResults({
-        ssl: '✅',
-        whois: '✅',
-        securityHeaders: '⚠️',
-        typosquatting: '❌',
-        brandRisk: '⚠️',
-        trustScore: 78
-      });
+    setError('');
+    try {
+      const result = await verifyCompany(url);
+      setResults(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to scan website.');
+    } finally {
       setIsScanning(false);
-    }, 2000);
+    }
   };
 
+  const trustVisual = results ? checkVisual(100 - results.trust_score) : null;
+
   return (
-    <div className="p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-2">Website Trust Assessment</h1>
-        <p className="text-slate-400 mb-8">Scan websites for security threats and trust indicators</p>
+    <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
+      <div className="mx-auto max-w-6xl">
+        <h1 className="mb-2 text-3xl font-semibold text-slate-900">Website Trust Assessment</h1>
+        <p className="mb-8 text-slate-600">Scan websites for WHOIS, SSL, header, and typosquatting risk indicators.</p>
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Input Section */}
           <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-              <label className="block text-sm font-medium text-white mb-3">Website URL</label>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <label className="mb-3 block text-sm font-semibold text-slate-900">Website URL</label>
               <input
-                type="url"
+                type="text"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://www.example.com"
-                className="w-full rounded-xl bg-slate-950/60 border border-white/10 px-4 py-3 text-white placeholder-slate-500 focus:border-red-500 focus:outline-none mb-4"
+                placeholder="www.example.com"
+                className="mb-4 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-800 placeholder-slate-400 focus:border-slate-500 focus:outline-none"
               />
+
+              {error ? (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+              ) : null}
+
               <button
                 onClick={handleScan}
-                disabled={isScanning || !url}
-                className="w-full rounded-xl bg-red-500 px-6 py-3 text-white font-semibold transition-colors hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isScanning || !url.trim()}
+                className="w-full rounded-2xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isScanning ? 'Scanning...' : 'Scan Website'}
               </button>
@@ -54,69 +72,51 @@ export default function WebsiteScanner() {
           <div className="space-y-6">
             {results ? (
               <>
-                <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Security Report</h3>
-                  <table className="w-full">
-                    <tbody>
-                      <tr className="border-b border-white/10">
-                        <td className="py-3 text-slate-300">SSL</td>
-                        <td className="py-3 text-right text-green-400">{results.ssl} Valid</td>
-                      </tr>
-                      <tr className="border-b border-white/10">
-                        <td className="py-3 text-slate-300">WHOIS</td>
-                        <td className="py-3 text-right text-green-400">{results.whois} Verified</td>
-                      </tr>
-                      <tr className="border-b border-white/10">
-                        <td className="py-3 text-slate-300">Security Headers</td>
-                        <td className="py-3 text-right text-yellow-400">{results.securityHeaders} Partial</td>
-                      </tr>
-                      <tr className="border-b border-white/10">
-                        <td className="py-3 text-slate-300">Typosquatting</td>
-                        <td className="py-3 text-right text-green-400">{results.typosquatting} Clean</td>
-                      </tr>
-                      <tr>
-                        <td className="py-3 text-slate-300">Brand Risk</td>
-                        <td className="py-3 text-right text-yellow-400">{results.brandRisk} Low Risk</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h3 className="mb-4 text-lg font-semibold text-slate-900">Security Report</h3>
+                  <div className="divide-y divide-slate-100">
+                    {results.signal_breakdown.map((s) => {
+                      const visual = checkVisual(s.score);
+                      const Icon = visual.icon;
+                      return (
+                        <div key={s.name} className="flex items-center justify-between gap-4 py-3">
+                          <div>
+                            <p className="text-sm font-medium capitalize text-slate-700">{formatSignalLabel(s.name)}</p>
+                            <p className="mt-0.5 text-xs text-slate-500">{s.explanation}</p>
+                          </div>
+                          <span className={`flex shrink-0 items-center gap-1.5 text-sm font-semibold ${visual.className}`}>
+                            <Icon className="h-4 w-4" />
+                            {visual.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Final Trust Score</h3>
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h3 className="mb-4 text-lg font-semibold text-slate-900">Final Trust Score</h3>
                   <div className="relative h-32">
-                    <svg className="h-32 w-32 transform -rotate-90">
+                    <svg className="h-32 w-32 -rotate-90 transform">
+                      <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200" />
                       <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        fill="transparent"
-                        className="text-slate-800"
-                      />
-                      <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        fill="transparent"
-                        strokeDasharray={`${results.trustScore * 3.52} 352`}
-                        className="text-yellow-500"
+                        cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="transparent"
+                        strokeDasharray={`${results.trust_score * 3.52} 352`}
+                        className={trustVisual?.className ?? 'text-emerald-500'}
+                        strokeLinecap="round"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-3xl font-bold text-white">{results.trustScore}%</span>
+                      <span className="text-3xl font-bold text-slate-900">{Math.round(results.trust_score)}%</span>
                     </div>
                   </div>
                 </div>
               </>
             ) : (
-              <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-12 text-center">
-                <div className="text-6xl mb-4">🌐</div>
-                <h3 className="text-xl font-semibold text-white mb-2">No Scan Yet</h3>
-                <p className="text-slate-400">Enter a website URL and click "Scan Website" to see the security report</p>
+              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+                <Globe className="mx-auto mb-4 h-12 w-12 text-slate-300" />
+                <h3 className="mb-2 text-xl font-semibold text-slate-900">No Scan Yet</h3>
+                <p className="text-slate-500">Enter a website URL and click &quot;Scan Website&quot; to see the security report</p>
               </div>
             )}
           </div>
