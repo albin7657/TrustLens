@@ -18,6 +18,12 @@ const CATEGORY_STYLES: Record<string, { label: string; ring: string; text: strin
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  const token = localStorage.getItem('access_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export default function CommunicationAnalyzer() {
   const [activeTab, setActiveTab] = useState('email');
   const [message, setMessage] = useState('');
@@ -45,6 +51,7 @@ export default function CommunicationAnalyzer() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...getAuthHeaders(),
           },
           body: JSON.stringify({ text: message }),
         });

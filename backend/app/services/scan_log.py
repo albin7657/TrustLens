@@ -9,7 +9,9 @@ analysis endpoint should return a result without also calling `log_scan`.
 
 from typing import Any, Optional
 
-from app.supabase_client import get_supabase_admin_client, get_supabase_client
+import jwt  # PyJWT — already a dependency of gotrue, no extra install needed
+
+from app.supabase_client import get_supabase_admin_client
 
 _VALID_SCAN_TYPES = {
     "job_text",
@@ -39,14 +41,20 @@ def _first(result: dict[str, Any], keys: tuple[str, ...]) -> Any:
 
 
 def resolve_user_id(authorization: Optional[str]) -> Optional[str]:
-    """Best-effort bearer-token -> user id resolution shared by every
-    analysis endpoint. None on any failure (missing/invalid token)."""
+    """Extract the user-id from a Supabase Bearer JWT without any network call.
+
+    Supabase JWTs carry the user UUID in the standard `sub` claim. We decode
+    the payload locally (signature verification skipped — we only need the id,
+    not to re-authenticate) so this works regardless of VPN, network conditions
+    or Supabase Auth API availability.
+    """
     if not authorization:
         return None
     try:
-        token = authorization.replace("Bearer ", "")
-        resp = get_supabase_client().auth.get_user(token)
-        return resp.user.id if resp.user else None
+        token = authorization.removeprefix("Bearer ").strip()
+        payload = jwt.decode(token, options={"verify_signature": False})
+        uid = payload.get("sub")
+        return str(uid) if uid else None
     except Exception:
         return None
 

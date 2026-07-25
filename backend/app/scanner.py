@@ -313,8 +313,9 @@ async def analyze_email(payload: AnalysisRequest, authorization: Optional[str] =
         try:
             gemini_signals, gemini_summary = gemini_client.analyze_email_phishing(text)
             signals.extend(gemini_signals)
-        except gemini_client.GeminiUnavailableError:
+        except gemini_client.GeminiUnavailableError as gemini_err:
             ai_available = False
+            gemini_summary = str(gemini_err)
 
         if signals:
             composite = combine(signals)
@@ -337,8 +338,8 @@ async def analyze_email(payload: AnalysisRequest, authorization: Optional[str] =
         else:
             gemini_result = {
                 "riskScore": 0,
-                "riskCategory": "Low Risk",
-                "explanation": "AI semantic analysis was unavailable for this request.",
+                "riskCategory": "low",
+                "explanation": f"Gemini AI was unavailable: {gemini_summary or 'unknown error'}. Result based on DistilBERT model only.",
                 "signalBreakdown": [],
                 "aiAvailable": False
             }

@@ -47,19 +47,45 @@ async def list_history(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required to view scan history.",
         )
-    query = (
-        get_supabase_admin_client()
-        .table("scan_history")
-        .select("*", count="exact")
-        .or_(f"user_id.eq.{resolved_user_id},user_id.is.null")
-    )
+    admin = get_supabase_admin_client()
+
+    # Fetch scans belonging to this user
+    user_query = admin.table("scan_history").select("*", count="exact")
     if scan_type:
-        query = query.eq("scan_type", scan_type)
-    result = query.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
+        user_query = user_query.eq("scan_type", scan_type)
+    user_result = (
+        user_query.eq("user_id", resolved_user_id)
+        .order("created_at", desc=True)
+        .range(offset, offset + limit - 1)
+        .execute()
+    )
+
+    # Also fetch scans stored with no user_id (logged while token resolution failed / VPN issue)
+    null_query = admin.table("scan_history").select("*", count="exact")
+    if scan_type:
+        null_query = null_query.eq("scan_type", scan_type)
+    null_result = (
+        null_query.is_("user_id", "null")
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+
+    # Merge, deduplicate, re-sort by created_at descending, apply limit
+    seen_ids: set[str] = set()
+    merged = []
+    for row in (user_result.data or []) + (null_result.data or []):
+        if row["id"] not in seen_ids:
+            seen_ids.add(row["id"])
+            merged.append(row)
+    merged.sort(key=lambda r: r["created_at"], reverse=True)
+    merged = merged[:limit]
+
+    total = (user_result.count or 0) + (null_result.count or 0)
 
     return HistoryListResponse(
-        results=[_to_history_item(r) for r in (result.data or [])],
-        total=result.count or 0,
+        results=[_to_history_item(r) for r in merged],
+        total=total,
     )
 
 
