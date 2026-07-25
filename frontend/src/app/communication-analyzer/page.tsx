@@ -259,7 +259,7 @@ export default function CommunicationAnalyzer() {
                           />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center flex-col">
-                          <span className="text-3xl font-black text-slate-900">{Math.round(results.localModel.confidence)}%</span>
+                          <span className="text-3xl font-black text-slate-900">{results.localModel.confidence.toFixed(2)}%</span>
                           <span className="text-[10px] uppercase font-bold text-slate-500">Confidence</span>
                         </div>
                       </div>

@@ -42,11 +42,19 @@ async def list_history(
     offset: int = Query(0, ge=0),
 ):
     resolved_user_id = user_id or resolve_user_id(authorization)
-    query = get_supabase_admin_client().table("scan_history").select("*", count="exact")
+    if not resolved_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required to view scan history.",
+        )
+    query = (
+        get_supabase_admin_client()
+        .table("scan_history")
+        .select("*", count="exact")
+        .or_(f"user_id.eq.{resolved_user_id},user_id.is.null")
+    )
     if scan_type:
         query = query.eq("scan_type", scan_type)
-    if resolved_user_id:
-        query = query.eq("user_id", resolved_user_id)
     result = query.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
 
     return HistoryListResponse(
