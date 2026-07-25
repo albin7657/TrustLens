@@ -18,3 +18,4 @@ class JobAnalyzeResponse(BaseModel):
     explanation: str
     signal_breakdown: list[SignalBreakdownItem]
     ai_available: bool
+    scan_id: Optional[str] = None

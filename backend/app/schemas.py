@@ -51,3 +51,4 @@ class UserResponse(BaseModel):
     avatar_url: Optional[str] = None
     provider: Optional[str] = None
     created_at: Optional[str] = None
+    role: str = "user"

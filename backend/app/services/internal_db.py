@@ -35,6 +35,18 @@ def _status_to_signal(name: str, status: str) -> Signal:
             explanation="Already flagged as suspicious in our internal database.",
             is_override=True,
         )
+    if status == "predatory":
+        return Signal(
+            name=name,
+            score=80.0,
+            weight=KNOWN_RECORD_WEIGHT,
+            is_override=True,
+            explanation=(
+                "Flagged as a pay-for-certificate / predatory internship provider. "
+                "The company is registered and may look legitimate, but community "
+                "reports indicate participants pay fees for certificates of little value."
+            ),
+        )
     if status == "verified":
         return Signal(
             name=name,
@@ -101,6 +113,38 @@ def check_recruiter_email(email: str) -> Signal | None:
     if recruiter.data:
         return _status_to_signal("internal_db:recruiter", recruiter.data[0].get("status", "unverified"))
     return None
+
+
+def check_recruiter_reports(email: str) -> Signal | None:
+    """Count approved community reports filed against this recruiter email.
+
+    Distinct from `check_recruiter_email`: that reads the recruiter's own
+    `status` column (set by report approval), this reads the report count
+    directly so the signal still fires even if the recruiter row's status
+    upsert failed or hasn't run yet.
+    """
+    if not email:
+        return None
+    client = get_supabase_admin_client()
+    result = (
+        client.table("fraud_reports")
+        .select("id", count="exact")
+        .eq("report_type", "recruiter")
+        .eq("target_reference", email)
+        .eq("status", "approved")
+        .execute()
+    )
+    count = result.count or 0
+    if count == 0:
+        return None
+    score = min(60.0 + 15.0 * count, 95.0)
+    return Signal(
+        name="internal_db:recruiter_reports",
+        score=score,
+        weight=KNOWN_RECORD_WEIGHT,
+        explanation=f"{count} approved community report(s) filed against this recruiter email.",
+        is_override=count >= 2,
+    )
 
 
 def extract_domain(text: str) -> str | None:

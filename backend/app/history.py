@@ -1,0 +1,74 @@
+"""
+Read/feedback side of the `scan_history` flywheel (Milestone P2-3).
+
+Every analysis endpoint across the other modules writes here via
+`app.services.scan_log.log_scan`; this router just lists that data back
+and records user feedback on it.
+"""
+
+from typing import Optional
+
+from fastapi import APIRouter, Header, HTTPException, Query, status
+
+from app.schemas_history import HistoryFeedbackRequest, HistoryItem, HistoryListResponse
+from app.services.scan_log import resolve_user_id
+from app.supabase_client import get_supabase_admin_client
+
+router = APIRouter(prefix="/history", tags=["Scan History"])
+
+
+def _to_history_item(row: dict) -> HistoryItem:
+    return HistoryItem(
+        id=row["id"],
+        scan_type=row["scan_type"],
+        input_summary=row["input_summary"],
+        input_ref=row.get("input_ref"),
+        risk_score=row.get("risk_score"),
+        risk_category=row.get("risk_category"),
+        signal_breakdown=row.get("signal_breakdown"),
+        result_payload=row.get("result_payload"),
+        feedback_accurate=row.get("feedback_accurate"),
+        feedback_comment=row.get("feedback_comment"),
+        created_at=str(row["created_at"]),
+    )
+
+
+@router.get("", response_model=HistoryListResponse, summary="List past scans, newest first")
+async def list_history(
+    scan_type: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+    limit: int = Query(20, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    resolved_user_id = user_id or resolve_user_id(authorization)
+    query = get_supabase_admin_client().table("scan_history").select("*", count="exact")
+    if scan_type:
+        query = query.eq("scan_type", scan_type)
+    if resolved_user_id:
+        query = query.eq("user_id", resolved_user_id)
+    result = query.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
+
+    return HistoryListResponse(
+        results=[_to_history_item(r) for r in (result.data or [])],
+        total=result.count or 0,
+    )
+
+
+@router.post(
+    "/{scan_id}/feedback",
+    response_model=HistoryItem,
+    summary="Record accuracy feedback for a past scan",
+)
+async def submit_feedback(scan_id: str, payload: HistoryFeedbackRequest):
+    admin = get_supabase_admin_client()
+    existing = admin.table("scan_history").select("*").eq("id", scan_id).limit(1).execute()
+    if not existing.data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found.")
+
+    update = {"feedback_accurate": payload.accurate, "feedback_comment": payload.comment}
+    admin.table("scan_history").update(update).eq("id", scan_id).execute()
+
+    row = existing.data[0]
+    row.update(update)
+    return _to_history_item(row)

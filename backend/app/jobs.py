@@ -7,11 +7,15 @@ match on any domain/email found in the text, and Gemini's structured
 semantic sub-signals. No single source is treated as the final verdict.
 """
 
-from fastapi import APIRouter, HTTPException, status
+from typing import Optional
+
+from fastapi import APIRouter, Header, HTTPException, status
 
 from app.schemas_common import SignalBreakdownItem
 from app.schemas_jobs import JobAnalyzeRequest, JobAnalyzeResponse
 from app.services import gemini_client, internal_db, rule_checks
+from app.services.embeddings import embed_text
+from app.services.scan_log import log_scan, resolve_user_id
 from app.services.scoring import combine
 from app.supabase_client import get_supabase_admin_client
 
@@ -23,7 +27,7 @@ router = APIRouter(prefix="/jobs", tags=["Job Fraud Detection"])
     response_model=JobAnalyzeResponse,
     summary="Analyze a job posting for fraud risk",
 )
-async def analyze_job(payload: JobAnalyzeRequest):
+async def analyze_job(payload: JobAnalyzeRequest, authorization: Optional[str] = Header(None)):
     text = payload.description.strip()
     if not text:
         raise HTTPException(
@@ -73,18 +77,37 @@ async def analyze_job(payload: JobAnalyzeRequest):
                     }
                     for s in composite.breakdown
                 ],
+                # Powers Module 7's pgvector similarity search (Milestone P2-4);
+                # None (embedding failure) is a valid value, never blocks the insert.
+                "embedding": embed_text(text),
             }
         ).execute()
     except Exception:
         pass  # persistence is best-effort; never fail the analysis response over it
 
+    signal_breakdown = [
+        SignalBreakdownItem(name=s.name, score=s.score, weight=s.weight, explanation=s.explanation)
+        for s in composite.breakdown
+    ]
+
+    scan_id = log_scan(
+        "job_text",
+        text,
+        {
+            "risk_score": composite.final_score,
+            "risk_category": composite.category,
+            "explanation": explanation,
+            "signal_breakdown": [s.model_dump() for s in signal_breakdown],
+            "ai_available": ai_available,
+        },
+        user_id=resolve_user_id(authorization),
+    )
+
     return JobAnalyzeResponse(
         risk_score=composite.final_score,
         risk_category=composite.category,
         explanation=explanation,
-        signal_breakdown=[
-            SignalBreakdownItem(name=s.name, score=s.score, weight=s.weight, explanation=s.explanation)
-            for s in composite.breakdown
-        ],
+        signal_breakdown=signal_breakdown,
         ai_available=ai_available,
+        scan_id=scan_id,
     )

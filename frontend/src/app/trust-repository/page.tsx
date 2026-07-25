@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Building2, UserRound, Globe2, FileWarning } from 'lucide-react';
 import { searchRepository, RepositorySearchResult } from '@/lib/api';
 
@@ -26,30 +26,37 @@ export default function TrustRepository() {
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+  const load = async (query?: string) => {
     setIsSearching(true);
     setError('');
     try {
-      const data = await searchRepository(searchQuery.trim());
+      const data = await searchRepository(query);
       setResults(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Search failed.');
+      setError(err instanceof Error ? err.message : 'Failed to load the repository.');
     } finally {
       setIsSearching(false);
     }
   };
 
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleSearch = () => load(searchQuery);
+
   return (
     <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
       <div className="mx-auto max-w-6xl">
         <h1 className="mb-2 text-3xl font-semibold text-slate-900">Trust Intelligence Repository</h1>
-        <p className="mb-8 text-slate-600">Search verified companies, recruiters, scam websites, and fraud reports.</p>
+        <p className="mb-8 text-slate-600">
+          Browse every verified company, recruiter, scam website, and fraud report — or search to narrow it down.
+        </p>
 
         {/* Search Section */}
         <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <label className="mb-3 block text-sm font-semibold text-slate-900">
-            Search Company / Recruiter / Domain
+            Search Company / Recruiter / Domain (optional)
           </label>
           <div className="flex gap-3">
             <input
@@ -57,17 +64,29 @@ export default function TrustRepository() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Enter a name, email, or domain..."
+              placeholder="Enter a name, email, or domain — or leave blank to see everything"
               className="flex-1 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-800 placeholder-slate-400 focus:border-slate-500 focus:outline-none"
             />
             <button
               onClick={handleSearch}
-              disabled={isSearching || !searchQuery.trim()}
+              disabled={isSearching}
               className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Search className="h-4 w-4" />
-              {isSearching ? 'Searching...' : 'Search'}
+              {isSearching ? 'Loading...' : 'Search'}
             </button>
+            {searchQuery.trim() ? (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  load();
+                }}
+                disabled={isSearching}
+                className="rounded-2xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Clear
+              </button>
+            ) : null}
           </div>
           {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
         </div>
@@ -76,12 +95,13 @@ export default function TrustRepository() {
         {results === null ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
             <Search className="mx-auto mb-4 h-10 w-10 text-slate-300" />
-            <h3 className="mb-2 text-xl font-semibold text-slate-900">Search the repository</h3>
-            <p className="text-slate-500">Results from every prior verification and report will appear here.</p>
+            <p className="text-slate-500">{isSearching ? 'Loading…' : 'Nothing to show yet.'}</p>
           </div>
         ) : results.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <p className="text-slate-500">No matches found for &quot;{searchQuery}&quot;.</p>
+            <p className="text-slate-500">
+              {searchQuery.trim() ? `No matches found for "${searchQuery}".` : 'The repository is empty so far.'}
+            </p>
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">

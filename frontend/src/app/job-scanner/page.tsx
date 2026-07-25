@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { FileUp, UploadCloud, AlertTriangle, ShieldCheck, ShieldAlert, Cpu, Sparkles } from 'lucide-react';
 import SignalBreakdown from '@/components/SignalBreakdown';
+import FeedbackStrip from '@/components/FeedbackStrip';
 
 const CATEGORY_STYLES: Record<string, { label: string; ring: string; text: string; bg: string; icon: typeof ShieldCheck }> = {
   high: { label: 'High Risk', ring: 'text-red-500', text: 'text-red-600', bg: 'bg-red-50/50 border-red-200/50', icon: ShieldAlert },
@@ -306,6 +307,11 @@ export default function JobScanner() {
                   </div>
                 </div>
 
+              </div>
+            ) : null}
+            {results ? (
+              <div className="rounded-3xl border border-slate-200 bg-white/70 p-6 shadow-xl backdrop-blur-md">
+                <FeedbackStrip scanId={results.scan_id} />
               </div>
             ) : (
               <div className="flex h-full min-h-[400px] flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white/40 p-12 text-center shadow-lg backdrop-blur-sm">

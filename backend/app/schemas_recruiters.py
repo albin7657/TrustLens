@@ -18,3 +18,4 @@ class RecruiterVerifyResponse(BaseModel):
     trust_rating: float
     status: str
     signal_breakdown: list[SignalBreakdownItem]
+    scan_id: Optional[str] = None

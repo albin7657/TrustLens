@@ -201,44 +201,47 @@ def analyze_email_phishing(text: str) -> tuple[list[Signal], str]:
     return signals, summary
 
 
-# ── Scam Similarity matching ──────────────────────────────────────────────
-_SCAM_SIMILARITY_PROMPT = """You are a threat intelligence engine. Analyze the following text \
-(likely a job posting, email, or message) and compare it against historical scam patterns \
-and campaigns (e.g., "Advance Fee Scam", "Identity Theft", "Fake Check Scam", "Crypto Investment Scam").
+# ── Scam similarity explanation (Milestone P2-4) ────────────────────────────
+# Unlike the old analyze_scam_similarity this replaced, Gemini never invents
+# matches here — `app/similarity.py` finds real matches via pgvector first
+# and this only narrates *those* in plain language.
+_SIMILARITY_EXPLANATION_PROMPT = """You are a threat intelligence analyst. A user submitted the \
+text below. Our database found the following previously confirmed scam reports/postings that \
+are semantically similar to it (similarity is 0-1, closer to 1 is more similar).
 
-Provide an overall semantic similarity score (0-100) indicating how strongly it matches known fraud patterns, \
-and list up to 3 specific historical scam cases/types it matches.
+Explain in 2-3 sentences, in plain language a user would understand, why this input resembles \
+these known cases. Only reference the matches provided below — do not invent additional cases \
+or details that aren't present in the matches or the submitted text.
 
-Respond with ONLY a JSON object of this exact shape, no markdown fences:
-{{
-  "similarityScore": <0-100 int>,
-  "matchedCases": [
-    {{
-      "id": <random 3-digit int for UI mockup purposes>,
-      "type": "<Name of the Scam Pattern>",
-      "similarity": <0-100 int>
-    }}
-  ],
-  "summary": "<2-3 sentence overall explanation of the similarity matches>"
-}}
-
-Text content:
+Submitted text:
 \"\"\"
 {text}
 \"\"\"
+
+Matches found (most similar first):
+{matches_block}
+
+Respond with ONLY a JSON object of this exact shape, no markdown fences:
+{{"analysis": "<2-3 sentence explanation>"}}
 """
 
-def analyze_scam_similarity(text: str) -> dict:
-    """Run the text through Gemini to find similar historical scams.
-    
-    Raises GeminiUnavailableError if the call fails.
-    """
+
+def explain_similarity_matches(text: str, matches: list[dict]) -> str:
+    """Ask Gemini to explain already-found pgvector matches. Raises
+    GeminiUnavailableError if the call fails — callers should fall back to
+    a templated explanation rather than block the response on this."""
     _ensure_configured()
+
+    matches_block = "\n".join(
+        f"- [{m['source_table']}] category={m.get('category') or 'unknown'} "
+        f"similarity={m['similarity']:.2f}: {m['excerpt']}"
+        for m in matches
+    )
 
     try:
         model = genai.GenerativeModel(settings.GEMINI_MODEL)
         response = model.generate_content(
-            _SCAM_SIMILARITY_PROMPT.format(text=text[:8000]),
+            _SIMILARITY_EXPLANATION_PROMPT.format(text=text[:4000], matches_block=matches_block),
             generation_config=genai.GenerationConfig(
                 response_mime_type="application/json",
                 temperature=0.2,
@@ -246,7 +249,7 @@ def analyze_scam_similarity(text: str) -> dict:
         )
         data = json.loads(response.text)
     except Exception as exc:
-        logger.warning("Gemini scam similarity analysis failed: %s", exc)
+        logger.warning("Gemini similarity explanation failed: %s", exc)
         raise GeminiUnavailableError(str(exc)) from exc
 
-    return data
+    return str(data.get("analysis", "")).strip()

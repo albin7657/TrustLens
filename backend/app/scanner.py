@@ -2,7 +2,9 @@
 FastAPI router for image OCR text extraction and DistilBERT model inference.
 """
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from typing import Optional
+
+from fastapi import APIRouter, Header, HTTPException, UploadFile, File
 from pydantic import BaseModel
 import torch
 from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification
@@ -13,7 +15,9 @@ from PIL import Image
 import numpy as np
 from app.config import settings
 
+from app import similarity
 from app.services import gemini_client, rule_checks, internal_db
+from app.services.scan_log import log_scan, resolve_user_id
 from app.services.scoring import combine
 
 router = APIRouter(prefix="/scanner", tags=["Scanner"])
@@ -115,7 +119,7 @@ async def extract_text_from_image(file: UploadFile = File(...)):
 
 
 @router.post("/analyze-job")
-async def analyze_job(payload: AnalysisRequest):
+async def analyze_job(payload: AnalysisRequest, authorization: Optional[str] = Header(None)):
     """Analyze job posting text for fraud using DistilBERT model."""
     text = payload.text
     if not text.strip():
@@ -227,9 +231,17 @@ async def analyze_job(payload: AnalysisRequest):
             "aiAvailable": ai_available
         }
 
+        scan_id = log_scan(
+            "job_image",
+            text,
+            {**gemini_result, "local_model": local_result},
+            user_id=resolve_user_id(authorization),
+        )
+
         return {
             "localModel": local_result,
-            "gemini": gemini_result
+            "gemini": gemini_result,
+            "scan_id": scan_id,
         }
     except Exception as e:
         raise HTTPException(
@@ -239,7 +251,7 @@ async def analyze_job(payload: AnalysisRequest):
 
 
 @router.post("/analyze-email")
-async def analyze_email(payload: AnalysisRequest):
+async def analyze_email(payload: AnalysisRequest, authorization: Optional[str] = Header(None)):
     """Analyze email text for phishing using DistilBERT model."""
     text = payload.text
     if not text.strip():
@@ -331,9 +343,17 @@ async def analyze_email(payload: AnalysisRequest):
                 "aiAvailable": False
             }
 
+        scan_id = log_scan(
+            "email",
+            text,
+            {**gemini_result, "local_model": local_result},
+            user_id=resolve_user_id(authorization),
+        )
+
         return {
             "localModel": local_result,
-            "gemini": gemini_result
+            "gemini": gemini_result,
+            "scan_id": scan_id,
         }
     except Exception as e:
         raise HTTPException(
@@ -343,73 +363,28 @@ async def analyze_email(payload: AnalysisRequest):
 
 
 @router.post("/analyze-similarity")
-async def analyze_similarity(payload: AnalysisRequest):
-    """Compare input text against known scams using DistilBERT and Gemini."""
+async def analyze_similarity(payload: AnalysisRequest, authorization: Optional[str] = Header(None)):
+    """Legacy route, kept only for backward compatibility — the frontend
+    should call POST /similarity/check directly. Delegates entirely to that
+    real pgvector search (Milestone P2-4) instead of the old behavior of
+    asking Gemini to recall "known scams" from training memory, which just
+    hallucinated matches instead of finding real ones."""
     text = payload.text
     if not text.strip():
         raise HTTPException(status_code=400, detail="Content cannot be empty.")
-        
-    tokenizer, model = load_job_model()
-    
-    try:
-        inputs = tokenizer(
-            text,
-            return_tensors="pt",
-            truncation=True,
-            padding=True,
-            max_length=512
-        )
-        
-        with torch.no_grad():
-            outputs = model(**inputs)
-            
-        probs = torch.softmax(outputs.logits, dim=1)
-        prediction = torch.argmax(probs, dim=1).item()
-        confidence = probs[0][prediction].item()
-        
-        label = "High Alert" if prediction == 1 else "Normal Pattern"
-        
-        # Calculate risk score
-        if prediction == 1:
-            risk_score = int(confidence * 100)
-            risk_level = "High Risk" if risk_score >= 75 else "Medium Risk"
-        else:
-            risk_score = int((1 - confidence) * 100)
-            risk_level = "Low Risk"
-            
-        local_result = {
-            "prediction": prediction,
-            "label": label,
-            "confidence": round(confidence * 100, 2),
-            "riskScore": risk_score,
-            "riskLevel": risk_level,
-            "explanation": f"DistilBERT evaluated this with {confidence*100:.2f}% confidence for structural fraud."
-        }
 
-        # Gemini logic
-        gemini_result = {}
-        try:
-            gemini_data = gemini_client.analyze_scam_similarity(text)
-            gemini_result = {
-                "similarityScore": gemini_data.get("similarityScore", 0),
-                "matchedCases": gemini_data.get("matchedCases", []),
-                "explanation": gemini_data.get("summary", ""),
-                "aiAvailable": True
-            }
-        except gemini_client.GeminiUnavailableError:
-            gemini_result = {
-                "similarityScore": 0,
-                "matchedCases": [],
-                "explanation": "AI similarity analysis was unavailable.",
-                "aiAvailable": False
-            }
+    result = similarity.run_similarity_check(text, user_id=resolve_user_id(authorization))
 
-        return {
-            "localModel": local_result,
-            "gemini": gemini_result
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Inference error: {str(e)}"
-        )
+    return {
+        "gemini": {
+            "similarityScore": round(result.matches[0].similarity * 100) if result.matches else 0,
+            "matchedCases": [
+                {"id": m.id, "type": m.category or m.source_table, "similarity": round(m.similarity * 100)}
+                for m in result.matches
+            ],
+            "explanation": result.analysis,
+            "aiAvailable": True,
+        },
+        "matches": [m.model_dump() for m in result.matches],
+        "scan_id": result.scan_id,
+    }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Building2, ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react';
 import { verifyCompany, CompanyVerifyResult } from '@/lib/api';
 import SignalBreakdown from '@/components/SignalBreakdown';
+import FeedbackStrip from '@/components/FeedbackStrip';
 
 const STATUS_STYLES = {
   verified: { label: 'Verified', ring: 'text-emerald-500', text: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', icon: ShieldCheck },
@@ -105,6 +106,9 @@ export default function CompanyVerification() {
                     internal database record — each scored independently and combined into the trust score above.
                   </p>
                   <SignalBreakdown signals={results.signal_breakdown} />
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    <FeedbackStrip scanId={results.scan_id} />
+                  </div>
                 </div>
               </>
             ) : (

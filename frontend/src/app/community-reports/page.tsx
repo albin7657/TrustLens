@@ -1,30 +1,89 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import {
+  REPORT_TYPE_OPTIONS,
+  ReportItem,
+  ReportType,
+  getMyReports,
+  submitReport,
+  uploadReportEvidence,
+} from '@/lib/api';
+
+const STATUS_STYLES: Record<string, string> = {
+  pending: 'bg-amber-50 text-amber-700 border-amber-200',
+  approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  rejected: 'bg-red-50 text-red-700 border-red-200',
+};
 
 export default function CommunityReports() {
-  const [activeTab, setActiveTab] = useState('submit');
-  const [reportType, setReportType] = useState('recruiter');
-  const [name, setName] = useState('');
+  const [activeTab, setActiveTab] = useState<'submit' | 'mine'>('submit');
+
+  const [reportType, setReportType] = useState<ReportType>('recruiter');
+  const [title, setTitle] = useState('');
+  const [targetReference, setTargetReference] = useState('');
   const [description, setDescription] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
 
-  const reportTypes = [
-    { id: 'recruiter', label: 'Recruiter' },
-    { id: 'company', label: 'Company' },
-    { id: 'job', label: 'Job Posting' },
-    { id: 'website', label: 'Website' },
-  ];
+  const [myReports, setMyReports] = useState<ReportItem[]>([]);
+  const [isLoadingMine, setIsLoadingMine] = useState(false);
+  const [mineError, setMineError] = useState('');
 
-  const handleSubmit = () => {
+  async function loadMyReports() {
+    setIsLoadingMine(true);
+    setMineError('');
+    try {
+      const data = await getMyReports();
+      setMyReports(data.results);
+    } catch (err) {
+      setMineError(err instanceof Error ? err.message : 'Failed to load your reports.');
+    } finally {
+      setIsLoadingMine(false);
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'mine') {
+      loadMyReports();
+    }
+  }, [activeTab]);
+
+  async function handleSubmit() {
+    setSubmitError('');
+    setSubmitSuccess('');
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert('Report submitted successfully!');
-      setName('');
+    try {
+      const report = await submitReport({
+        report_type: reportType,
+        title,
+        target_reference: targetReference,
+        description,
+      });
+      if (file) {
+        try {
+          await uploadReportEvidence(report.id, file);
+        } catch {
+          // Evidence upload failing shouldn't hide that the report itself was submitted.
+          setSubmitError('Report submitted, but the evidence file failed to upload.');
+        }
+      }
+      setSubmitSuccess('Report submitted. It is now pending admin review.');
+      setTitle('');
+      setTargetReference('');
       setDescription('');
-    }, 2000);
-  };
+      setFile(null);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to submit report. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const canSubmit = title.trim() && targetReference.trim() && description.trim() && !isSubmitting;
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
@@ -43,12 +102,12 @@ export default function CommunityReports() {
             Submit Report
           </button>
           <button
-            onClick={() => setActiveTab('admin')}
+            onClick={() => setActiveTab('mine')}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === 'admin' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
+              activeTab === 'mine' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
-            Admin Panel
+            My Reports
           </button>
         </div>
 
@@ -62,11 +121,11 @@ export default function CommunityReports() {
                 <label className="block text-sm font-semibold text-slate-900 mb-2">Report Type</label>
                 <select
                   value={reportType}
-                  onChange={(e) => setReportType(e.target.value)}
+                  onChange={(e) => setReportType(e.target.value as ReportType)}
                   className="w-full rounded-2xl bg-white border border-slate-300 px-4 py-3 text-slate-800 focus:border-slate-500 focus:outline-none"
                 >
-                  {reportTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
+                  {REPORT_TYPE_OPTIONS.map((type) => (
+                    <option key={type.value} value={type.value}>
                       {type.label}
                     </option>
                   ))}
@@ -74,12 +133,25 @@ export default function CommunityReports() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">Name</label>
+                <label className="block text-sm font-semibold text-slate-900 mb-2">Title</label>
                 <input
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter name of recruiter, company, or website"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Short summary, e.g. 'Charges a training fee for a certificate'"
+                  className="w-full rounded-2xl bg-white border border-slate-300 px-4 py-3 text-slate-800 placeholder-slate-400 focus:border-slate-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                  Domain, email, or name being reported
+                </label>
+                <input
+                  type="text"
+                  value={targetReference}
+                  onChange={(e) => setTargetReference(e.target.value)}
+                  placeholder="e.g. scam-company.example or recruiter@scam-company.example"
                   className="w-full rounded-2xl bg-white border border-slate-300 px-4 py-3 text-slate-800 placeholder-slate-400 focus:border-slate-500 focus:outline-none"
                 />
               </div>
@@ -88,9 +160,16 @@ export default function CommunityReports() {
                 <label className="block text-sm font-semibold text-slate-900 mb-2">Evidence Upload</label>
                 <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
                   <div className="text-4xl mb-3">📁</div>
-                  <p className="text-slate-600 mb-2">Drag and drop files here or click to upload</p>
-                  <p className="text-sm text-slate-400">Supports: PDF, DOC, DOCX, PNG, JPG (Max 10MB)</p>
-                  <input type="file" className="hidden" />
+                  <p className="text-slate-600 mb-2">
+                    {file ? file.name : 'Choose a file to upload (optional)'}
+                  </p>
+                  <p className="text-sm text-slate-400 mb-3">Supports: PDF, PNG, JPG, WEBP (Max 10MB)</p>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,application/pdf"
+                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                    className="mx-auto block text-sm text-slate-600"
+                  />
                 </div>
               </div>
 
@@ -105,9 +184,20 @@ export default function CommunityReports() {
                 />
               </div>
 
+              {submitError ? (
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {submitError}
+                </div>
+              ) : null}
+              {submitSuccess ? (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                  {submitSuccess}
+                </div>
+              ) : null}
+
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || !name || !description}
+                disabled={!canSubmit}
                 className="w-full rounded-2xl bg-slate-900 px-6 py-3 text-white font-semibold transition hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Report'}
@@ -115,53 +205,61 @@ export default function CommunityReports() {
             </div>
           </div>
         ) : (
-          /* Admin Panel */
-          <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <p className="text-sm text-slate-500">Pending Reports</p>
-                <p className="mt-2 text-3xl font-bold text-amber-600">24</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <p className="text-sm text-slate-500">Approved Reports</p>
-                <p className="mt-2 text-3xl font-bold text-emerald-600">156</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <p className="text-sm text-slate-500">Rejected Reports</p>
-                <p className="mt-2 text-3xl font-bold text-red-600">32</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <p className="text-sm text-slate-500">Evidence Review</p>
-                <p className="mt-2 text-3xl font-bold text-blue-600">18</p>
-              </div>
+          /* My Reports */
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-900">My Reports</h3>
+              <button
+                onClick={loadMyReports}
+                className="text-sm font-medium text-slate-600 hover:text-slate-900"
+              >
+                Refresh
+              </button>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Recent Reports</h3>
+            {isLoadingMine ? (
+              <p className="text-slate-500 text-sm">Loading…</p>
+            ) : mineError ? (
               <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Fake Recruiter Report</p>
-                    <p className="text-xs text-slate-400">Submitted 2 hours ago</p>
-                  </div>
-                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs text-amber-700 border border-amber-200">Pending</span>
-                </div>
-                <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Scam Job Posting</p>
-                    <p className="text-xs text-slate-400">Submitted 5 hours ago</p>
-                  </div>
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs text-emerald-700 border border-emerald-200">Approved</span>
-                </div>
-                <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Suspicious Company</p>
-                    <p className="text-xs text-slate-400">Submitted 1 day ago</p>
-                  </div>
-                  <span className="rounded-full bg-red-50 px-3 py-1 text-xs text-red-700 border border-red-200">Rejected</span>
-                </div>
+                <p className="text-sm text-red-700">{mineError}</p>
+                <button
+                  onClick={loadMyReports}
+                  className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+                >
+                  Retry
+                </button>
               </div>
-            </div>
+            ) : myReports.length === 0 ? (
+              <p className="text-slate-500 text-sm">
+                You haven&apos;t submitted any reports yet — or you&apos;re not logged in.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {myReports.map((report) => (
+                  <div
+                    key={report.id}
+                    className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">{report.title || report.target_reference}</p>
+                      <p className="text-xs text-slate-400">
+                        {report.report_type.replace(/_/g, ' ')} · {new Date(report.created_at).toLocaleString()}
+                      </p>
+                      {report.resolution_note ? (
+                        <p className="text-xs text-slate-500 mt-1">Note: {report.resolution_note}</p>
+                      ) : null}
+                    </div>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs border ${
+                        STATUS_STYLES[report.status] || 'bg-slate-50 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      {report.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

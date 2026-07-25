@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Globe, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import { verifyCompany, CompanyVerifyResult } from '@/lib/api';
+import FeedbackStrip from '@/components/FeedbackStrip';
 
 function checkVisual(score: number) {
   if (score < 30) return { icon: CheckCircle2, className: 'text-emerald-500', label: 'Low risk' };
@@ -24,7 +25,7 @@ export default function WebsiteScanner() {
     setIsScanning(true);
     setError('');
     try {
-      const result = await verifyCompany(url);
+      const result = await verifyCompany(url, undefined, 'website');
       setResults(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to scan website.');
@@ -109,6 +110,9 @@ export default function WebsiteScanner() {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-3xl font-bold text-slate-900">{Math.round(results.trust_score)}%</span>
                     </div>
+                  </div>
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    <FeedbackStrip scanId={results.scan_id} />
                   </div>
                 </div>
               </>

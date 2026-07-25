@@ -12,6 +12,9 @@ from app.companies import router as companies_router
 from app.recruiters import router as recruiters_router
 from app.repository import router as repository_router
 from app.scanner import router as scanner_router
+from app.reports import router as reports_router
+from app.history import router as history_router
+from app.similarity import router as similarity_router
 
 app = FastAPI(
     title="TrustLens API",
@@ -40,6 +43,9 @@ app.include_router(companies_router)
 app.include_router(recruiters_router)
 app.include_router(repository_router)
 app.include_router(scanner_router)
+app.include_router(reports_router)
+app.include_router(history_router)
+app.include_router(similarity_router)
 
 
 # ── Health Check ─────────────────────────────────────────────────────────────

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { UserRound, ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react';
 import { verifyRecruiter, RecruiterVerifyResult } from '@/lib/api';
 import SignalBreakdown from '@/components/SignalBreakdown';
+import FeedbackStrip from '@/components/FeedbackStrip';
 
 const STATUS_STYLES = {
   verified: { label: 'High Trust', text: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', icon: ShieldCheck },
@@ -115,6 +116,9 @@ export default function RecruiterVerification() {
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                   <h3 className="mb-4 text-lg font-semibold text-slate-900">Signal Breakdown</h3>
                   <SignalBreakdown signals={results.signal_breakdown} />
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    <FeedbackStrip scanId={results.scan_id} />
+                  </div>
                 </div>
               </>
             ) : (

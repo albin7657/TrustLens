@@ -10,6 +10,7 @@ const BACKEND_URL =
 
 const menuItems = [
   { icon: "🏠", label: "Overview", href: "/overview" },
+  { icon: "🕘", label: "My Scans", href: "/my-scans" },
   { icon: "🔎", label: "Fraud Scanner", href: "/job-scanner" },
   {
     icon: "👤",

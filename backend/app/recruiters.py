@@ -6,11 +6,14 @@ the trust status of their email domain's company record, and a
 domain-match rule check against a claimed employer.
 """
 
-from fastapi import APIRouter
+from typing import Optional
+
+from fastapi import APIRouter, Header
 
 from app.schemas_common import SignalBreakdownItem
 from app.schemas_recruiters import RecruiterVerifyRequest, RecruiterVerifyResponse
 from app.services import internal_db
+from app.services.scan_log import log_scan, resolve_user_id
 from app.services.scoring import Signal, combine
 from app.supabase_client import get_supabase_admin_client
 
@@ -22,7 +25,7 @@ router = APIRouter(prefix="/recruiters", tags=["Recruiter Verification"])
     response_model=RecruiterVerifyResponse,
     summary="Assess a recruiter's trust rating",
 )
-async def verify_recruiter(payload: RecruiterVerifyRequest):
+async def verify_recruiter(payload: RecruiterVerifyRequest, authorization: Optional[str] = Header(None)):
     email = payload.email.strip().lower()
     email_domain = email.split("@")[-1] if "@" in email else ""
 
@@ -101,12 +104,27 @@ async def verify_recruiter(payload: RecruiterVerifyRequest):
     except Exception:
         pass  # persistence is best-effort; never fail the verification response over it
 
+    signal_breakdown = [
+        SignalBreakdownItem(name=s.name, score=s.score, weight=s.weight, explanation=s.explanation)
+        for s in composite.breakdown
+    ]
+
+    scan_id = log_scan(
+        "recruiter",
+        email,
+        {
+            "trust_rating": trust_rating,
+            "status": status_label,
+            "signal_breakdown": [s.model_dump() for s in signal_breakdown],
+        },
+        input_ref=email,
+        user_id=resolve_user_id(authorization),
+    )
+
     return RecruiterVerifyResponse(
         email=email,
         trust_rating=trust_rating,
         status=status_label,
-        signal_breakdown=[
-            SignalBreakdownItem(name=s.name, score=s.score, weight=s.weight, explanation=s.explanation)
-            for s in composite.breakdown
-        ],
+        signal_breakdown=signal_breakdown,
+        scan_id=scan_id,
     )

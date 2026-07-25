@@ -10,7 +10,7 @@ from fastapi.responses import RedirectResponse
 from typing import Optional
 from gotrue.errors import AuthApiError
 
-from app.supabase_client import get_supabase_client
+from app.supabase_client import get_supabase_client, get_supabase_admin_client
 from app.config import settings
 from app.schemas import (
     SignUpRequest,
@@ -25,6 +25,53 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 # ── Helper ───────────────────────────────────────────────────────────────────
+
+def _upsert_profile(user) -> None:
+    """Best-effort `profiles` row so role-based access has something to read.
+
+    Deliberately omits `role` from the payload: on conflict this only
+    refreshes email/full_name and never resets an already-promoted admin
+    back to the default 'user' role.
+    """
+    try:
+        get_supabase_admin_client().table("profiles").upsert(
+            {
+                "id": user.id,
+                "email": user.email,
+                "full_name": (user.user_metadata or {}).get("full_name"),
+            },
+            on_conflict="id",
+        ).execute()
+    except Exception:
+        pass  # profile sync is best-effort; never fail the auth flow over it
+
+
+def get_role(authorization: Optional[str]) -> str:
+    """Resolve the caller's role from `profiles`. Returns 'user' on any
+    failure (missing/invalid token, no profile row, DB error) — this is
+    the only gate `/reports/{id}/review` and future admin endpoints need.
+    """
+    if not authorization:
+        return "user"
+    try:
+        token = authorization.replace("Bearer ", "")
+        resp = get_supabase_client().auth.get_user(token)
+        if resp.user is None:
+            return "user"
+        row = (
+            get_supabase_admin_client()
+            .table("profiles")
+            .select("role")
+            .eq("id", resp.user.id)
+            .limit(1)
+            .execute()
+        )
+        if row.data:
+            return row.data[0].get("role", "user")
+        return "user"
+    except Exception:
+        return "user"
+
 
 def _build_auth_response(session) -> AuthResponse:
     """Convert a Supabase session into our standard AuthResponse."""
@@ -83,6 +130,8 @@ async def signup(payload: SignUpRequest):
                 detail="Sign-up failed. The email may already be registered.",
             )
 
+        _upsert_profile(response.user)
+
         # If email confirmation is required, session may be None
         if response.session is None:
             return AuthResponse(
@@ -132,6 +181,7 @@ async def login(payload: LoginRequest):
                 detail="Invalid credentials or email not confirmed.",
             )
 
+        _upsert_profile(response.session.user)
         return _build_auth_response(response.session)
 
     except AuthApiError as e:
@@ -223,6 +273,7 @@ async def exchange_code(code: str = Query(...)):
                 detail="Failed to exchange code for session.",
             )
 
+        _upsert_profile(response.session.user)
         return _build_auth_response(response.session)
 
     except AuthApiError as e:
@@ -306,6 +357,21 @@ async def get_current_user(authorization: str = Header(...)):
             )
 
         user = response.user
+        role = "user"
+        try:
+            row = (
+                get_supabase_admin_client()
+                .table("profiles")
+                .select("role")
+                .eq("id", user.id)
+                .limit(1)
+                .execute()
+            )
+            if row.data:
+                role = row.data[0].get("role", "user")
+        except Exception:
+            pass
+
         return UserResponse(
             id=user.id,
             email=user.email,
@@ -313,6 +379,7 @@ async def get_current_user(authorization: str = Header(...)):
             avatar_url=(user.user_metadata or {}).get("avatar_url"),
             provider=user.app_metadata.get("provider", "email") if user.app_metadata else "email",
             created_at=str(user.created_at) if user.created_at else None,
+            role=role,
         )
 
     except AuthApiError as e:

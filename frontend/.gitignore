@@ -1,5 +1,7 @@
 # Sync .project/sourceTexts/ folder (source text files)
 
+email_model
+fake_job_model
 # Don't sync user-specific SQLite databases
 .project/*.sqlite
 
