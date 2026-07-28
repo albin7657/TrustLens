@@ -12,12 +12,14 @@ strongly (but not absolutely) pulls the score toward low risk.
 """
 
 import re
+from urllib.parse import urlparse
 
 from app.services.scoring import Signal
 from app.supabase_client import get_supabase_admin_client
 
 _EMAIL_RE = re.compile(r"[\w.+-]+@([\w-]+\.[\w.-]+)")
 _DOMAIN_RE = re.compile(r"\b((?:[a-z0-9-]+\.)+[a-z]{2,})\b", re.IGNORECASE)
+_URL_RE = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
 
 # Large relative to a single Gemini sub-signal (10-20) or rule-based check (20)
 # so a known verdict dominates the weighted average without being an
@@ -156,3 +158,40 @@ def extract_domain(text: str) -> str | None:
     if domain_match:
         return domain_match.group(1).lower()
     return None
+
+
+def extract_email(text: str) -> str | None:
+    """Best-effort extraction of the first full email address in free text
+    (as opposed to extract_domain, which only returns the domain part)."""
+    match = _EMAIL_RE.search(text)
+    return match.group(0).lower() if match else None
+
+
+def extract_links(text: str) -> list[dict]:
+    """Every URL, and every bare/email domain, mentioned anywhere in free
+    text — as opposed to `extract_domain`'s single best-effort match. Used
+    by modules (like the communication analyzer) that need to check every
+    mentioned domain, not just one. Each item is `{"url": str | None, "domain": str}`.
+    """
+    results: list[dict] = []
+    seen: set[str] = set()
+
+    for url in _URL_RE.findall(text):
+        domain = urlparse(url).netloc.lower().split(":")[0]
+        if domain and domain not in seen:
+            seen.add(domain)
+            results.append({"url": url, "domain": domain})
+
+    for domain in _DOMAIN_RE.findall(text):
+        domain = domain.lower()
+        if domain not in seen:
+            seen.add(domain)
+            results.append({"url": None, "domain": domain})
+
+    for email_domain in _EMAIL_RE.findall(text):
+        domain = email_domain.lower()
+        if domain not in seen:
+            seen.add(domain)
+            results.append({"url": None, "domain": domain})
+
+    return results

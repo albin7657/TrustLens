@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Search, UserRound, Building2, Globe2, Mail, Archive, Brain,
+  Search, UserRound, Building2, Mail, Archive,
   Megaphone, BarChart3, FileText, Bot, ArrowRight,
 } from 'lucide-react';
 
@@ -13,13 +13,11 @@ interface UserData {
 }
 
 const MODULES = [
-  { icon: Search, title: 'Fraud Scanner', description: 'Analyze a job posting for fraud risk.', href: '/job-scanner' },
+  { icon: Search, title: 'Fraud Scanner', description: 'Analyze a job posting for fraud risk and known scam similarity.', href: '/job-scanner' },
   { icon: UserRound, title: 'Recruiter Verification', description: 'Check a recruiter against domain and prior records.', href: '/recruiter-verification' },
-  { icon: Building2, title: 'Company Verification', description: 'Assess a company’s WHOIS, SSL, and trust score.', href: '/company-verification' },
-  { icon: Globe2, title: 'Website Trust Assessment', description: 'Scan a website for security and typosquatting risk.', href: '/website-scanner' },
+  { icon: Building2, title: 'Company Verification', description: 'Assess a company or website’s WHOIS, SSL, and trust score.', href: '/company-verification' },
   { icon: Mail, title: 'Communication Analyzer', description: 'Check emails, SMS, or chat messages for phishing.', href: '/communication-analyzer' },
   { icon: Archive, title: 'Trust Repository', description: 'Search verified companies, recruiters, and reports.', href: '/trust-repository' },
-  { icon: Brain, title: 'Scam Similarity', description: 'Compare a posting against known scam campaigns.', href: '/scam-similarity' },
   { icon: Megaphone, title: 'Community Reports', description: 'Report a scam or review pending community reports.', href: '/community-reports' },
   { icon: BarChart3, title: 'Institutional Dashboard', description: 'Placement-office view of fraud and verification trends.', href: '/institutional-dashboard' },
   { icon: FileText, title: 'Reporting Assistant', description: 'Generate an evidence summary for cybercrime reporting.', href: '/reporting-assistant' },

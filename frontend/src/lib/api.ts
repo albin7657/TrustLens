@@ -13,7 +13,7 @@ export interface SignalBreakdownItem {
 }
 
 export type RiskCategory = 'low' | 'medium' | 'high';
-export type TrustStatus = 'verified' | 'suspicious' | 'unverified';
+export type TrustStatus = 'verified' | 'suspicious' | 'unverified' | 'predatory';
 
 function authHeaders(): Record<string, string> {
   if (typeof window === 'undefined') return {};
@@ -51,6 +51,8 @@ export interface JobAnalyzeResult {
   explanation: string;
   signal_breakdown: SignalBreakdownItem[];
   ai_available: boolean;
+  verdict_label?: string | null;
+  posting_type?: string | null;
   scan_id?: string | null;
 }
 
@@ -59,6 +61,41 @@ export function analyzeJob(description: string, companyName?: string) {
     description,
     company_name: companyName || undefined,
   });
+}
+
+export interface JobUrlFetchFailedResult {
+  fetch_failed: true;
+  reason: 'site_blocks_bots' | 'page_unreadable';
+  domain_analysis: {
+    domain: string;
+    trust_score: number;
+    risk_category: RiskCategory;
+    signal_breakdown: SignalBreakdownItem[];
+  };
+}
+
+export function analyzeJobByUrl(url: string) {
+  return postJSON<JobAnalyzeResult | JobUrlFetchFailedResult>('/jobs/analyze-url', { url });
+}
+
+// ── Module 7: Real Scam Similarity ──────────────────────────────────────────
+
+export interface SimilarityMatch {
+  source_table: string;
+  id: string;
+  similarity: number;
+  category: string | null;
+  excerpt: string;
+}
+
+export interface SimilarityCheckResult {
+  matches: SimilarityMatch[];
+  analysis: string;
+  scan_id?: string | null;
+}
+
+export function checkSimilarity(text: string) {
+  return postJSON<SimilarityCheckResult>('/similarity/check', { text });
 }
 
 // ── Modules 3 & 4: Company / Website Trust ─────────────────────────────────
@@ -115,6 +152,39 @@ export async function searchRepository(query?: string): Promise<RepositorySearch
     throw new Error(data.detail || 'Search failed. Please try again.');
   }
   return data.results as RepositorySearchResult[];
+}
+
+// ── Module 7: Minimal Trust Graph ───────────────────────────────────────────
+
+export type GraphEntityType = 'company' | 'recruiter' | 'domain' | 'report' | 'job_posting' | 'scan';
+
+export interface GraphNode {
+  type: GraphEntityType;
+  id: string;
+  label: string;
+  status: string | null;
+}
+
+export interface GraphEdgeEndpoint {
+  type: GraphEntityType;
+  id: string;
+}
+
+export interface GraphEdge {
+  source: GraphEdgeEndpoint;
+  target: GraphEdgeEndpoint;
+  relationship: string;
+}
+
+export interface GraphResult {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+export function getGraph(entityType: GraphEntityType, entityId: string, depth: 1 | 2 = 1) {
+  return getJSON<GraphResult>(
+    `/graph/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}?depth=${depth}`
+  );
 }
 
 // ── Module 8: Community Reporting ──────────────────────────────────────────
@@ -233,4 +303,63 @@ export function getHistory(params: { scanType?: ScanType; limit?: number; offset
 
 export function submitScanFeedback(scanId: string, accurate: boolean, comment?: string) {
   return postJSON<ScanHistoryItem>(`/history/${scanId}/feedback`, { accurate, comment: comment || undefined });
+}
+
+// ── Module 5: Communication Analyzer ────────────────────────────────────────
+
+export type CommunicationChannel = 'email' | 'sms' | 'whatsapp' | 'telegram' | 'other';
+
+export const CHANNEL_OPTIONS: { value: CommunicationChannel; label: string }[] = [
+  { value: 'whatsapp', label: 'WhatsApp' },
+  { value: 'email', label: 'Email' },
+  { value: 'sms', label: 'SMS' },
+  { value: 'telegram', label: 'Telegram' },
+  { value: 'other', label: 'Other' },
+];
+
+export type ScamStage = 'contact' | 'trust_building' | 'urgency' | 'payment_request' | 'credential_theft';
+
+export const SCAM_STAGES: { value: ScamStage; label: string }[] = [
+  { value: 'contact', label: 'Contact' },
+  { value: 'trust_building', label: 'Trust building' },
+  { value: 'urgency', label: 'Urgency' },
+  { value: 'payment_request', label: 'Payment request' },
+  { value: 'credential_theft', label: 'Credential theft' },
+];
+
+export type LureType =
+  | 'registration_fee'
+  | 'equipment_fee'
+  | 'training_deposit'
+  | 'crypto'
+  | 'gift_card'
+  | 'phishing_link'
+  | 'credential_theft'
+  | 'none';
+
+export interface CommunicationMessage {
+  sender: 'them' | 'me';
+  text: string;
+}
+
+export interface ExtractedLink {
+  url: string | null;
+  domain: string;
+  internal_db_hit: string | null;
+}
+
+export interface CommunicationAnalyzeResult {
+  risk_score: number;
+  risk_category: RiskCategory;
+  scam_stage: ScamStage;
+  lure_type: LureType;
+  explanation: string;
+  signal_breakdown: SignalBreakdownItem[];
+  extracted_links: ExtractedLink[];
+  ai_available: boolean;
+  scan_id?: string | null;
+}
+
+export function analyzeCommunication(channel: CommunicationChannel, messages: CommunicationMessage[]) {
+  return postJSON<CommunicationAnalyzeResult>('/communications/analyze', { channel, messages });
 }

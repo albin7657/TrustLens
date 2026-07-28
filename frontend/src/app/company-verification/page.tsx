@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Building2, ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react';
+import { Building2, ShieldCheck, ShieldAlert, ShieldQuestion, AlertTriangle } from 'lucide-react';
 import { verifyCompany, CompanyVerifyResult } from '@/lib/api';
 import SignalBreakdown from '@/components/SignalBreakdown';
 import FeedbackStrip from '@/components/FeedbackStrip';
@@ -10,6 +10,7 @@ const STATUS_STYLES = {
   verified: { label: 'Verified', ring: 'text-emerald-500', text: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', icon: ShieldCheck },
   suspicious: { label: 'Suspicious', ring: 'text-red-500', text: 'text-red-600', bg: 'bg-red-50 border-red-200', icon: ShieldAlert },
   unverified: { label: 'Unverified', ring: 'text-amber-500', text: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', icon: ShieldQuestion },
+  predatory: { label: 'Predatory (Pay-for-Certificate)', ring: 'text-amber-500', text: 'text-amber-700', bg: 'bg-amber-50 border-amber-300', icon: AlertTriangle },
 } as const;
 
 export default function CompanyVerification() {

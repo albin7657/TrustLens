@@ -18,14 +18,12 @@ const menuItems = [
     href: "/recruiter-verification",
   },
   { icon: "🏢", label: "Company Verification", href: "/company-verification" },
-  { icon: "🌐", label: "Website Scanner", href: "/website-scanner" },
   {
     icon: "📩",
     label: "Communication Analyzer",
     href: "/communication-analyzer",
   },
   { icon: "🗂️", label: "Trust Repository", href: "/trust-repository" },
-  { icon: "🧠", label: "Scam Similarity", href: "/scam-similarity" },
   { icon: "🚨", label: "Community Reports", href: "/community-reports" },
   {
     icon: "📊",

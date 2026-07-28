@@ -38,30 +38,46 @@ def _ensure_configured() -> None:
 # ── Job posting sub-signals ─────────────────────────────────────────────────
 # name -> (weight within the Gemini portion of the composite score, prompt label)
 JOB_POSTING_SUB_SIGNALS = {
-    "salary_realism": 15,
+    "salary_plausibility": 15,
     "advance_fee_risk": 20,
     "urgency_pressure": 10,
     "vague_or_generic": 10,
     "contact_legitimacy": 10,
+    "predatory_internship_pattern": 25,
 }
+
+# A posting is "predatory-dominated" (Milestone P2-6a) when Gemini's own
+# pattern-match sub-signal is this severe, regardless of the overall
+# risk_category — that's what earns the distinct verdict_label.
+PREDATORY_INTERNSHIP_THRESHOLD = 60.0
 
 _JOB_POSTING_PROMPT = """You are a recruitment-fraud analyst. Score the following job posting \
 on each of these red flags, using a 0-100 scale where 0 means "no concern" and 100 means \
 "severe red flag":
 
-- salary_realism: is the offered compensation unrealistically high for the role/effort described?
+- salary_plausibility: is the offered compensation wildly high for the role/effort described \
+(classic lure), OR is a "stipend" actually a fee charged to the candidate in disguise?
 - advance_fee_risk: does it ask the candidate to pay money, buy equipment, or send fees/deposits?
 - urgency_pressure: does it use artificial urgency or high-pressure hiring tactics?
 - vague_or_generic: does it lack specific detail about the role, responsibilities, or company?
 - contact_legitimacy: are contact details unprofessional (personal email domains, no verifiable company info)?
+- predatory_internship_pattern: does this match a pay-for-certificate / internship-mill scheme — \
+an unpaid or low-value role, ANY fee charged to the candidate, a certificate or letter of \
+recommendation positioned as the main deliverable, and trivial work (watching videos, filling \
+forms) rather than real responsibilities?
+
+Also classify:
+- posting_type: is this posting for a "job" or an "internship"? One of exactly: job, internship.
 
 Respond with ONLY a JSON object of this exact shape, no markdown fences:
 {{
-  "salary_realism": {{"score": <0-100 int>, "reason": "<one sentence>"}},
+  "posting_type": "<job or internship>",
+  "salary_plausibility": {{"score": <0-100 int>, "reason": "<one sentence>"}},
   "advance_fee_risk": {{"score": <0-100 int>, "reason": "<one sentence>"}},
   "urgency_pressure": {{"score": <0-100 int>, "reason": "<one sentence>"}},
   "vague_or_generic": {{"score": <0-100 int>, "reason": "<one sentence>"}},
   "contact_legitimacy": {{"score": <0-100 int>, "reason": "<one sentence>"}},
+  "predatory_internship_pattern": {{"score": <0-100 int>, "reason": "<one sentence>"}},
   "summary": "<2-3 sentence overall explanation a job seeker would understand>"
 }}
 
@@ -72,8 +88,9 @@ Job posting:
 """
 
 
-def analyze_job_posting(text: str) -> tuple[list[Signal], str]:
-    """Run the job posting through Gemini and return (signals, summary).
+def analyze_job_posting(text: str) -> tuple[list[Signal], str, str, float]:
+    """Run the job posting through Gemini and return
+    (signals, summary, posting_type, predatory_pattern_score).
 
     Raises GeminiUnavailableError if the call fails or the response can't
     be parsed — callers should degrade gracefully (fall back to rule-based
@@ -96,6 +113,7 @@ def analyze_job_posting(text: str) -> tuple[list[Signal], str]:
         raise GeminiUnavailableError(str(exc)) from exc
 
     signals: list[Signal] = []
+    predatory_score = 0.0
     for key, weight in JOB_POSTING_SUB_SIGNALS.items():
         item = data.get(key)
         if not isinstance(item, dict) or "score" not in item:
@@ -105,6 +123,8 @@ def analyze_job_posting(text: str) -> tuple[list[Signal], str]:
         except (TypeError, ValueError):
             continue
         score = max(0.0, min(100.0, score))
+        if key == "predatory_internship_pattern":
+            predatory_score = score
         signals.append(
             Signal(
                 name=f"gemini:{key}",
@@ -117,8 +137,9 @@ def analyze_job_posting(text: str) -> tuple[list[Signal], str]:
     if not signals:
         raise GeminiUnavailableError("Gemini response contained no usable sub-signals.")
 
+    posting_type = data.get("posting_type") if data.get("posting_type") in ("job", "internship") else "job"
     summary = str(data.get("summary", "")).strip()
-    return signals, summary
+    return signals, summary, posting_type, predatory_score
 
 
 # ── Email phishing sub-signals ──────────────────────────────────────────────
@@ -199,6 +220,135 @@ def analyze_email_phishing(text: str) -> tuple[list[Signal], str]:
 
     summary = str(data.get("summary", "")).strip()
     return signals, summary
+
+
+# ── Communication analysis (Milestone P2-5) ─────────────────────────────────
+COMMUNICATION_SUB_SIGNALS = {
+    "payment_or_fee_request": 30,
+    "urgency_or_threat": 20,
+    "impersonation_or_authority": 20,
+    "credential_or_personal_info_request": 20,
+}
+
+# Severity if Gemini's stage/lure classification should shift the score even
+# when the sub-signals above don't fully capture it (e.g. a bare "pay now"
+# demand with none of the softer manipulation tactics).
+_STAGE_SEVERITY = {
+    "contact": 15.0,
+    "trust_building": 35.0,
+    "urgency": 60.0,
+    "payment_request": 90.0,
+    "credential_theft": 95.0,
+}
+_LURE_SEVERITY = {
+    "none": 5.0,
+    "registration_fee": 80.0,
+    "equipment_fee": 80.0,
+    "training_deposit": 80.0,
+    "crypto": 85.0,
+    "gift_card": 85.0,
+    "phishing_link": 85.0,
+    "credential_theft": 90.0,
+}
+
+_COMMUNICATION_PROMPT = """You are a scam-communication analyst. Below is a message thread over \
+{channel} — each line is prefixed with who sent it: "them" is the other party, "me" is the \
+person who received it. Classify it and score red flags.
+
+Classify:
+- scam_stage: which stage of a scam does this thread currently sit at? One of exactly: \
+contact, trust_building, urgency, payment_request, credential_theft.
+- lure_type: the specific lure/ask present, if any. One of exactly: registration_fee, \
+equipment_fee, training_deposit, crypto, gift_card, phishing_link, credential_theft, none.
+
+Score each of these red flags on a 0-100 scale where 0 means "no concern" and 100 means \
+"severe red flag":
+- payment_or_fee_request: does "them" ask for money, fees, deposits, or purchases?
+- urgency_or_threat: does it use artificial urgency, deadlines, or threats?
+- impersonation_or_authority: does it claim to represent a company/authority without verifiable proof?
+- credential_or_personal_info_request: does it ask for passwords, OTPs, bank details, or ID documents?
+
+Respond with ONLY a JSON object of this exact shape, no markdown fences:
+{{
+  "scam_stage": "<one of the exact values above>",
+  "lure_type": "<one of the exact values above>",
+  "payment_or_fee_request": {{"score": <0-100 int>, "reason": "<one sentence>"}},
+  "urgency_or_threat": {{"score": <0-100 int>, "reason": "<one sentence>"}},
+  "impersonation_or_authority": {{"score": <0-100 int>, "reason": "<one sentence>"}},
+  "credential_or_personal_info_request": {{"score": <0-100 int>, "reason": "<one sentence>"}},
+  "summary": "<2-3 sentence overall explanation a user would understand>"
+}}
+
+Thread:
+\"\"\"
+{thread}
+\"\"\"
+"""
+
+
+def analyze_communication(thread: str, channel: str) -> tuple[list[Signal], str, str, str]:
+    """Run a message thread through Gemini and return
+    (signals, scam_stage, lure_type, summary).
+
+    Raises GeminiUnavailableError if the call fails or the response can't be
+    parsed — callers should degrade gracefully (rule-based + internal-DB
+    signals only, stage/lure left at safe defaults).
+    """
+    _ensure_configured()
+
+    try:
+        model = genai.GenerativeModel(settings.GEMINI_MODEL)
+        response = model.generate_content(
+            _COMMUNICATION_PROMPT.format(channel=channel, thread=thread[:8000]),
+            generation_config=genai.GenerationConfig(
+                response_mime_type="application/json",
+                temperature=0.2,
+            ),
+        )
+        data = json.loads(response.text)
+    except Exception as exc:
+        logger.warning("Gemini communication analysis failed: %s", exc)
+        raise GeminiUnavailableError(str(exc)) from exc
+
+    scam_stage = data.get("scam_stage") if data.get("scam_stage") in _STAGE_SEVERITY else "contact"
+    lure_type = data.get("lure_type") if data.get("lure_type") in _LURE_SEVERITY else "none"
+
+    signals: list[Signal] = []
+    for key, weight in COMMUNICATION_SUB_SIGNALS.items():
+        item = data.get(key)
+        if not isinstance(item, dict) or "score" not in item:
+            continue
+        try:
+            score = float(item["score"])
+        except (TypeError, ValueError):
+            continue
+        score = max(0.0, min(100.0, score))
+        signals.append(
+            Signal(name=f"gemini:{key}", score=score, weight=weight, explanation=str(item.get("reason", "")))
+        )
+
+    if not signals:
+        raise GeminiUnavailableError("Gemini response contained no usable sub-signals.")
+
+    signals.append(
+        Signal(
+            name="gemini:scam_stage",
+            score=_STAGE_SEVERITY[scam_stage],
+            weight=20,
+            explanation=f"Classified communication stage: {scam_stage.replace('_', ' ')}.",
+        )
+    )
+    signals.append(
+        Signal(
+            name="gemini:lure_type",
+            score=_LURE_SEVERITY[lure_type],
+            weight=20,
+            explanation=f"Detected lure type: {lure_type.replace('_', ' ')}.",
+        )
+    )
+
+    summary = str(data.get("summary", "")).strip()
+    return signals, scam_stage, lure_type, summary
 
 
 # ── Scam similarity explanation (Milestone P2-4) ────────────────────────────

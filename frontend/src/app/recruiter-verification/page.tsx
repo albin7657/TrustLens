@@ -10,6 +10,9 @@ const STATUS_STYLES = {
   verified: { label: 'High Trust', text: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', icon: ShieldCheck },
   suspicious: { label: 'High Risk', text: 'text-red-600', bg: 'bg-red-50 border-red-200', icon: ShieldAlert },
   unverified: { label: 'Moderate Trust', text: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', icon: ShieldQuestion },
+  // Recruiters never actually get this status (predatory is company-only),
+  // but RecruiterVerifyResult shares the same TrustStatus type as companies.
+  predatory: { label: 'High Risk', text: 'text-red-600', bg: 'bg-red-50 border-red-200', icon: ShieldAlert },
 } as const;
 
 export default function RecruiterVerification() {

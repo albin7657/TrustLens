@@ -16,7 +16,7 @@ import numpy as np
 from app.config import settings
 
 from app import similarity
-from app.services import gemini_client, rule_checks, internal_db
+from app.services import domain_trust, email_checks, gemini_client, rule_checks, internal_db
 from app.services.scan_log import log_scan, resolve_user_id
 from app.services.scoring import combine
 
@@ -195,25 +195,49 @@ async def analyze_job(payload: AnalysisRequest, authorization: Optional[str] = H
             "aiExplanation": explanation
         }
 
-        # Gemini logic
-        signals = [rule_checks.check_red_flag_phrases(text)]
+        # Gemini logic — Milestone P2-6b folds Modules 2/3/4 into this same
+        # paste: any domain/email mentioned gets the full company/recruiter
+        # cross-check, not just the bare internal-DB lookup.
+        signals = [rule_checks.check_red_flag_phrases(text), rule_checks.check_internship_fee_phrases(text)]
         domain = internal_db.extract_domain(text)
+        email = internal_db.extract_email(text)
+        email_domain = email.split("@")[-1] if email else None
+
         if domain:
             db_signal = internal_db.check_domain(domain)
             if db_signal:
                 signals.append(db_signal)
+            signals.extend(domain_trust.assess_domain(domain))
+
+        if email_domain:
+            recruiter_signal = internal_db.check_recruiter_email(email)
+            if recruiter_signal:
+                signals.append(recruiter_signal)
+            claimed = domain if (domain and domain != email_domain) else None
+            signals.extend(email_checks.assess_email(email_domain, claimed))
 
         gemini_summary = ""
         ai_available = True
+        posting_type = "job"
+        predatory_score = 0.0
         try:
-            gemini_signals, gemini_summary = gemini_client.analyze_job_posting(text)
+            gemini_signals, gemini_summary, posting_type, predatory_score = gemini_client.analyze_job_posting(text)
             signals.extend(gemini_signals)
         except gemini_client.GeminiUnavailableError:
             ai_available = False
 
         composite = combine(signals)
         gemini_explanation = gemini_summary or "Assessment based on rule-based checks and internal database records."
-        
+
+        # Milestone P2-6a: distinct verdict for a pay-for-certificate posting,
+        # regardless of the overall risk category.
+        internship_fee_signal = next((s for s in signals if s.name == "rules:internship_fee_phrases"), None)
+        rule_based_predatory = bool(internship_fee_signal and internship_fee_signal.score >= 66.0)
+        gemini_predatory = (
+            posting_type == "internship" and predatory_score >= gemini_client.PREDATORY_INTERNSHIP_THRESHOLD
+        )
+        verdict_label = "predatory_internship" if (rule_based_predatory or gemini_predatory) else None
+
         gemini_result = {
             "riskScore": composite.final_score,
             "riskCategory": composite.category,
@@ -228,7 +252,9 @@ async def analyze_job(payload: AnalysisRequest, authorization: Optional[str] = H
                 }
                 for s in composite.breakdown
             ],
-            "aiAvailable": ai_available
+            "aiAvailable": ai_available,
+            "verdictLabel": verdict_label,
+            "postingType": posting_type,
         }
 
         scan_id = log_scan(
