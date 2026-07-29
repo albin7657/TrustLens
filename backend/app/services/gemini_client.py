@@ -403,3 +403,91 @@ def explain_similarity_matches(text: str, matches: list[dict]) -> str:
         raise GeminiUnavailableError(str(exc)) from exc
 
     return str(data.get("analysis", "")).strip()
+
+
+# ── Fraud Complaint Generation (Milestone P2-9) ─────────────────────────────
+_COMPLAINT_PROMPT = """You are a legal & cybercrime reporting assistant. Analyze the following fraud scan / report record and generate a formal, structured incident report suitable for submission to cybercrime reporting portals (e.g. India Cybercrime Portal, FTC, IC3).
+
+Record details:
+Type: {type}
+Target / Reference: {target}
+Risk / Status: {risk}
+Summary / Text: {summary}
+Signal breakdown / Details: {details}
+
+Respond with ONLY a JSON object of this exact shape, no markdown fences:
+{{
+  "incident_summary": "<2-4 sentence formal narrative summary of what occurred and why it is fraudulent>",
+  "entity_details": {{
+    "entity_name": "<company name or person claimed, if known>",
+    "domain_or_url": "<domain or URL involved, if any>",
+    "contact_email_or_phone": "<email or contact phone involved, if any>"
+  }},
+  "evidence_list": [
+    "<specific evidence point 1>",
+    "<specific evidence point 2>",
+    "<specific evidence point 3>"
+  ],
+  "recommended_channels": [
+    "<recommended portal 1 e.g. National Cyber Crime Reporting Portal (cybercrime.gov.in)>",
+    "<recommended portal 2 e.g. Federal Trade Commission (reportfraud.ftc.gov)>",
+    "<recommended portal 3 e.g. Local Police Cyber Cell>"
+  ]
+}}
+"""
+
+
+def generate_fraud_complaint(record: dict) -> dict:
+    """Generate a structured fraud complaint from a scan_history or fraud_reports record.
+    Falls back gracefully to a templated dict if Gemini is unavailable.
+    """
+    try:
+        _ensure_configured()
+        model = genai.GenerativeModel(settings.GEMINI_MODEL)
+        response = model.generate_content(
+            _COMPLAINT_PROMPT.format(
+                type=record.get("type", "fraud_scan"),
+                target=record.get("target", "N/A"),
+                risk=record.get("risk", "High Risk"),
+                summary=str(record.get("summary", ""))[:2000],
+                details=json.dumps(record.get("details", []), default=str)[:2000],
+            ),
+            generation_config=genai.GenerationConfig(
+                response_mime_type="application/json",
+                temperature=0.2,
+            ),
+        )
+        data = json.loads(response.text)
+        if isinstance(data, dict) and "incident_summary" in data:
+            return data
+    except Exception as exc:
+        logger.warning("Gemini complaint generation failed: %s", exc)
+
+    # Fallback structure if Gemini fails
+    signals = record.get("details", [])
+    ev_list = []
+    if isinstance(signals, list):
+        for s in signals:
+            if isinstance(s, dict) and "explanation" in s:
+                ev_list.append(s["explanation"])
+    if not ev_list:
+        ev_list = [
+            f"Automated risk classification: {record.get('risk', 'High Risk')}",
+            f"Identified reference: {record.get('target', 'N/A')}",
+        ]
+
+    return {
+        "incident_summary": f"Incident involving {record.get('target', 'unspecified target')} flagged with risk status '{record.get('risk', 'High Risk')}'. {str(record.get('summary', ''))[:300]}",
+        "entity_details": {
+            "entity_name": str(record.get("target", "Unknown")),
+            "domain_or_url": str(record.get("target", "N/A")),
+            "contact_email_or_phone": "N/A",
+        },
+        "evidence_list": ev_list,
+        "recommended_channels": [
+            "National Cyber Crime Reporting Portal (cybercrime.gov.in)",
+            "Federal Trade Commission (reportfraud.ftc.gov)",
+            "Internet Crime Complaint Center (ic3.gov)",
+        ],
+    }
+

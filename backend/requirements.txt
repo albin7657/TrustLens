@@ -14,3 +14,5 @@ easyocr
 httpx
 dnspython
 trafilatura
+reportlab
+
