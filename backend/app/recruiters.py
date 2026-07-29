@@ -1,9 +1,12 @@
 """
 Module 2 — Recruiter Verification.
 
-Signals: any prior internal-database record on the recruiter's email,
-the trust status of their email domain's company record, and a
-domain-match rule check against a claimed employer.
+Signals: any prior internal-database record on the recruiter's email, the
+trust status of their email domain's company record, a domain-match rule
+check against a claimed employer, email authenticity checks (MX records,
+free-mail/disposable providers, lookalike domains — Milestone P2-6d, see
+app/services/email_checks.py), and a trust-graph check for flagged
+neighbors (Milestone P2-7, see app/services/graph.py).
 """
 
 from typing import Optional
@@ -12,7 +15,7 @@ from fastapi import APIRouter, Header
 
 from app.schemas_common import SignalBreakdownItem
 from app.schemas_recruiters import RecruiterVerifyRequest, RecruiterVerifyResponse
-from app.services import internal_db
+from app.services import email_checks, graph, internal_db
 from app.services.scan_log import log_scan, resolve_user_id
 from app.services.scoring import Signal, combine
 from app.supabase_client import get_supabase_admin_client
@@ -48,6 +51,7 @@ async def verify_recruiter(payload: RecruiterVerifyRequest, authorization: Optio
                 )
             )
 
+    claimed: Optional[str] = None
     if payload.claimed_company_domain:
         claimed = payload.claimed_company_domain.strip().lower()
         matches = bool(email_domain) and (email_domain == claimed or email_domain.endswith(f".{claimed}"))
@@ -72,6 +76,21 @@ async def verify_recruiter(payload: RecruiterVerifyRequest, authorization: Optio
                     ),
                 )
             )
+
+    if email_domain:
+        signals.extend(email_checks.assess_email(email_domain, claimed))
+
+    # Milestone P2-7: record this recruiter's relationships in the trust
+    # graph, then check whether any of its neighbors are already flagged —
+    # the "recruiter linked to a flagged domain/company" signal.
+    if email_domain:
+        graph.link("recruiter", email, "domain", email_domain, "same_email_domain", "recruiters.verify")
+    if claimed:
+        graph.link("recruiter", email, "company", claimed, "claims_company", "recruiters.verify")
+
+    neighbor_signal = graph.flagged_neighbor_signal("recruiter", email)
+    if neighbor_signal:
+        signals.append(neighbor_signal)
 
     if not signals:
         signals.append(

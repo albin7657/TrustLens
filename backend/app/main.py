@@ -15,6 +15,11 @@ from app.scanner import router as scanner_router
 from app.reports import router as reports_router
 from app.history import router as history_router
 from app.similarity import router as similarity_router
+from app.communications import router as communications_router
+from app.graph import router as graph_router
+from app.stats import router as stats_router
+from app.reporting_assistant import router as reporting_router
+from app.admin import router as admin_router
 
 app = FastAPI(
     title="TrustLens API",
@@ -46,6 +51,13 @@ app.include_router(scanner_router)
 app.include_router(reports_router)
 app.include_router(history_router)
 app.include_router(similarity_router)
+app.include_router(communications_router)
+app.include_router(graph_router)
+app.include_router(stats_router)
+app.include_router(reporting_router)
+app.include_router(admin_router)
+
+
 
 
 # ── Health Check ─────────────────────────────────────────────────────────────

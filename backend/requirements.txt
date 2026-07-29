@@ -11,3 +11,8 @@ torchvision
 transformers
 safetensors
 easyocr
+httpx
+dnspython
+trafilatura
+reportlab
+

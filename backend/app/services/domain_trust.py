@@ -14,6 +14,7 @@ import socket
 import ssl
 from datetime import datetime, timezone
 
+import dns.resolver
 import httpx
 import whois
 
@@ -113,6 +114,64 @@ def check_security_headers(domain: str) -> Signal:
         )
 
 
+def domain_similarity(a: str, b: str) -> float:
+    """0-1 similarity ratio between two domain strings — shared by
+    check_typosquatting (against all verified domains) and the recruiter
+    email lookalike-domain check (against one claimed domain)."""
+    return difflib.SequenceMatcher(None, a, b).ratio()
+
+
+def check_mail_infrastructure(domain: str) -> Signal:
+    """MX/SPF/DMARC depth check (Milestone P2-6e). A "company" domain with
+    zero mail infrastructure at all is a soft signal — legitimate operating
+    companies almost always have at least MX records."""
+    try:
+        has_mx = False
+        try:
+            dns.resolver.resolve(domain, "MX")
+            has_mx = True
+        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.resolver.NoNameservers):
+            has_mx = False
+
+        has_spf = False
+        has_dmarc = False
+        try:
+            txt_records = dns.resolver.resolve(domain, "TXT")
+            for record in txt_records:
+                value = b"".join(record.strings).decode("utf-8", errors="ignore") if hasattr(record, "strings") else str(record)
+                if value.lower().startswith("v=spf1"):
+                    has_spf = True
+        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.resolver.NoNameservers):
+            pass
+        try:
+            dmarc_records = dns.resolver.resolve(f"_dmarc.{domain}", "TXT")
+            for record in dmarc_records:
+                value = b"".join(record.strings).decode("utf-8", errors="ignore") if hasattr(record, "strings") else str(record)
+                if value.lower().startswith("v=dmarc1"):
+                    has_dmarc = True
+        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.resolver.NoNameservers):
+            pass
+
+        if not has_mx:
+            return Signal(
+                name="dns:mail_infrastructure", score=60.0, weight=15,
+                explanation=f"The domain {domain} has no MX (mail) records — no mail infrastructure at all.",
+            )
+
+        present = ["MX"] + (["SPF"] if has_spf else []) + (["DMARC"] if has_dmarc else [])
+        missing = (["SPF"] if not has_spf else []) + (["DMARC"] if not has_dmarc else [])
+        score = 10.0 if not missing else 25.0
+        explanation = f"Mail infrastructure present: {', '.join(present)}."
+        if missing:
+            explanation += f" Missing: {', '.join(missing)}."
+        return Signal(name="dns:mail_infrastructure", score=score, weight=15, explanation=explanation)
+    except Exception as exc:
+        return Signal(
+            name="dns:mail_infrastructure", score=50.0, weight=8,
+            explanation=f"DNS lookup failed, treating as neutral: {exc}",
+        )
+
+
 def check_typosquatting(domain: str) -> Signal | None:
     """Flag domains that closely resemble one of our own verified-company domains."""
     client = get_supabase_admin_client()
@@ -143,7 +202,12 @@ def check_typosquatting(domain: str) -> Signal | None:
 
 def assess_domain(domain: str) -> list[Signal]:
     """Run every domain trust check and return the full signal list."""
-    signals = [check_domain_age(domain), check_ssl(domain), check_security_headers(domain)]
+    signals = [
+        check_domain_age(domain),
+        check_ssl(domain),
+        check_security_headers(domain),
+        check_mail_infrastructure(domain),
+    ]
     typosquat = check_typosquatting(domain)
     if typosquat is not None:
         signals.append(typosquat)

@@ -32,21 +32,26 @@ function CallbackHandler() {
       const tokenType = params.get('token_type');
 
       if (accessToken) {
-        localStorage.setItem('access_token', accessToken);
-        if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
-        if (tokenType) localStorage.setItem('token_type', tokenType);
-
-        // Fetch user profile from backend using the new token
+        // Fetch user profile from backend using the token before committing login
         fetch(`${BACKEND_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
           .then((r) => r.json())
           .then((user) => {
+            localStorage.setItem('access_token', accessToken);
+            if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
+            if (tokenType) localStorage.setItem('token_type', tokenType);
             localStorage.setItem('user', JSON.stringify(user));
-          })
-          .catch(() => {/* non-fatal — token is still stored */})
-          .finally(() => {
+            
+            const savedRole = localStorage.getItem('user_role');
+            if (!savedRole) {
+              localStorage.setItem('user_role', user.role === 'admin' ? 'admin' : (user.role || 'user'));
+            }
+
             router.push('/overview');
+          })
+          .catch(() => {
+            setError('Failed to verify user profile. Please try again.');
           });
         return;
       }
@@ -74,6 +79,10 @@ function CallbackHandler() {
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('refresh_token', data.refresh_token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        const savedRole = localStorage.getItem('user_role');
+        if (!savedRole) {
+          localStorage.setItem('user_role', data.user?.role === 'admin' ? 'admin' : (data.user?.role || 'user'));
+        }
 
         router.push('/overview');
       } catch {
@@ -84,23 +93,28 @@ function CallbackHandler() {
     exchangeCode();
   }, [searchParams, router]);
 
+  const isEmailMismatch = error.startsWith('PROVIDER_MISMATCH:email|');
+  const displayErrorMessage = isEmailMismatch ? error.split('|')[1] : error;
+
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-800">
       <div className="flex min-h-screen items-center justify-center px-6">
         <div className="w-full max-w-md rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm text-center">
           {error ? (
             <>
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
-                <AlertCircle className="h-8 w-8 text-red-500" />
+              <div className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full ${isEmailMismatch ? 'bg-amber-50' : 'bg-red-50'}`}>
+                <AlertCircle className={`h-8 w-8 ${isEmailMismatch ? 'text-amber-600' : 'text-red-500'}`} />
               </div>
-              <h2 className="text-2xl font-semibold text-slate-900">Authentication Failed</h2>
-              <p className="mt-4 text-slate-600">{error}</p>
+              <h2 className="text-2xl font-semibold text-slate-900">
+                {isEmailMismatch ? 'Account Uses Email Sign-In' : 'Authentication Failed'}
+              </h2>
+              <p className="mt-4 text-slate-600 leading-relaxed">{displayErrorMessage}</p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Link
                   href="/login"
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
                 >
-                  Back to Login
+                  Go to Login
                 </Link>
                 <Link
                   href="/signup"

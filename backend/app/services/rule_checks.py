@@ -47,3 +47,31 @@ def check_red_flag_phrases(text: str) -> Signal:
         explanation = "No known scam phrases detected."
 
     return Signal(name="rules:red_flag_phrases", score=score, weight=20, explanation=explanation)
+
+
+_INTERNSHIP_FEE_PHRASES = [
+    "registration fee", "training fee", "certificate fee", "security deposit",
+    "pay for internship", "stipend based on performance", "certificate + lor",
+    "certificate and lor", "guaranteed certificate", "limited seats",
+    "msme registered", "no interview required",
+]
+
+
+def check_internship_fee_phrases(text: str) -> Signal:
+    """Pay-for-certificate / internship-mill phrase check (Milestone P2-6a).
+
+    Distinct from check_red_flag_phrases: these phrases specifically target
+    the "unpaid internship + fee + certificate as the real deliverable"
+    pattern, not general job-scam language.
+    """
+    lowered = text.lower()
+    matched = [p for p in _INTERNSHIP_FEE_PHRASES if p in lowered]
+
+    score = round(min(len(matched) / 3, 1.0) * 100, 2)
+
+    if matched:
+        explanation = f"Matched {len(matched)} pay-for-certificate phrase(s): {', '.join(matched[:5])}."
+    else:
+        explanation = "No pay-for-certificate / internship-mill phrases detected."
+
+    return Signal(name="rules:internship_fee_phrases", score=score, weight=25, explanation=explanation)

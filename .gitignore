@@ -1,0 +1,14 @@
+# Large local model artifacts — never commit these (GitHub's 100MB hard
+# limit rejects model.safetensors at 255MB regardless of LFS setup here).
+# Backend loads them from disk via FAKE_JOB_MODEL_PATH / EMAIL_MODEL_PATH
+# in backend/.env — they must exist locally but are not part of the repo.
+/email_model/
+/fake_job_model/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/

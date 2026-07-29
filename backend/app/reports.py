@@ -26,6 +26,7 @@ from app.schemas_reports import (
     ReportSubmitRequest,
     ReportSubmitResponse,
 )
+from app.services import graph
 from app.services.embeddings import embed_text
 from app.services.scan_log import resolve_user_id as _resolve_user_id
 from app.supabase_client import get_supabase_admin_client
@@ -66,24 +67,11 @@ def _classify_target(report_type: str, target_reference: str) -> tuple[str, str]
 
 
 def _link_report(report_id: str, target_reference: str, report_type: str) -> None:
-    """Best-effort upsert into entity_links; never raises."""
+    """Best-effort entity_links row (Milestone P2-7's trust graph)."""
     if not target_reference:
         return
-    try:
-        target_type, target_id = _classify_target(report_type, target_reference)
-        get_supabase_admin_client().table("entity_links").upsert(
-            {
-                "source_type": "report",
-                "source_id": report_id,
-                "target_type": target_type,
-                "target_id": target_id,
-                "relationship": "reported_against",
-                "created_from": "reports",
-            },
-            on_conflict="source_type,source_id,target_type,target_id,relationship",
-        ).execute()
-    except Exception:
-        pass
+    target_type, target_id = _classify_target(report_type, target_reference)
+    graph.link("report", report_id, target_type, target_id, "reported_against", "reports")
 
 
 def _embed_description(report_id: str, description: str) -> None:
