@@ -1,0 +1,3 @@
+[submodule "backend/models"]
+	path = backend/models
+	url = https://github.com/albin7657/TrustLens-model.git
