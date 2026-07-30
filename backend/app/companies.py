@@ -26,7 +26,11 @@ _SCHEME_RE = re.compile(r"^https?://", re.IGNORECASE)
 
 def _normalize_domain(raw: str) -> str:
     domain = _SCHEME_RE.sub("", raw.strip().lower())
-    return domain.split("/")[0]
+    domain = domain.split("/")[0].split(":")[0].replace(" ", "")
+    if "." not in domain and domain:
+        domain = f"{domain}.com"
+    return domain
+
 
 
 @router.post(

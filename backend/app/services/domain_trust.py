@@ -174,34 +174,52 @@ def check_mail_infrastructure(domain: str) -> Signal:
 
 def check_typosquatting(domain: str) -> Signal | None:
     """Flag domains that closely resemble one of our own verified-company domains."""
-    client = get_supabase_admin_client()
-    verified = client.table("companies").select("domain").eq("status", "verified").execute()
-    known_domains = [
-        row["domain"] for row in (verified.data or []) if row.get("domain") and row["domain"] != domain
-    ]
-    if not known_domains:
+    try:
+        client = get_supabase_admin_client()
+        verified = client.table("companies").select("domain").eq("status", "verified").execute()
+        known_domains = [
+            row["domain"] for row in (verified.data or []) if row.get("domain") and row["domain"] != domain
+        ]
+        if not known_domains:
+            return None
+
+        closest = difflib.get_close_matches(domain, known_domains, n=1, cutoff=0.75)
+        if not closest:
+            return Signal(
+                name="typosquat:check", score=5.0, weight=10,
+                explanation="No close resemblance to known verified brand domains.",
+            )
+
+        similarity = difflib.SequenceMatcher(None, domain, closest[0]).ratio()
+        score = round(similarity * 100, 2)
+        return Signal(
+            name="typosquat:check", score=score, weight=15,
+            explanation=(
+                f"Domain closely resembles verified brand '{closest[0]}' "
+                f"({round(similarity * 100)}% similar) — possible typosquatting."
+            ),
+        )
+    except Exception:
         return None
 
-    closest = difflib.get_close_matches(domain, known_domains, n=1, cutoff=0.75)
-    if not closest:
-        return Signal(
-            name="typosquat:check", score=5.0, weight=10,
-            explanation="No close resemblance to known verified brand domains.",
-        )
 
-    similarity = difflib.SequenceMatcher(None, domain, closest[0]).ratio()
-    score = round(similarity * 100, 2)
-    return Signal(
-        name="typosquat:check", score=score, weight=15,
-        explanation=(
-            f"Domain closely resembles verified brand '{closest[0]}' "
-            f"({round(similarity * 100)}% similar) — possible typosquatting."
-        ),
-    )
+
+def _normalize_domain(domain: str) -> str:
+    d = domain.strip().lower()
+    if d.startswith("https://"):
+        d = d[8:]
+    elif d.startswith("http://"):
+        d = d[7:]
+    d = d.split("/")[0].split(":")[0].replace(" ", "")
+    if "." not in d and d:
+        d = f"{d}.com"
+    return d
+
 
 
 def assess_domain(domain: str) -> list[Signal]:
     """Run every domain trust check and return the full signal list."""
+    domain = _normalize_domain(domain)
     signals = [
         check_domain_age(domain),
         check_ssl(domain),
@@ -212,3 +230,4 @@ def assess_domain(domain: str) -> list[Signal]:
     if typosquat is not None:
         signals.append(typosquat)
     return signals
+
