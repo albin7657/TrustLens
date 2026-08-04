@@ -7,27 +7,22 @@ from typing import Optional
 from fastapi import APIRouter, Header, HTTPException, UploadFile, File
 from pydantic import BaseModel
 import torch
-from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification
 import easyocr
 import io
-import os
 from PIL import Image
 import numpy as np
-from app.config import settings
 
 from app import similarity
 from app.services import domain_trust, email_checks, gemini_client, rule_checks, internal_db
+from app.services.local_models import load_email_model, load_job_model
 from app.services.scan_log import log_scan, resolve_user_id
 from app.services.scoring import combine
 
 router = APIRouter(prefix="/scanner", tags=["Scanner"])
 
-# Global placeholders for lazy-loaded models and readers
+# Global placeholder for the lazy-loaded OCR reader (job/email model loaders
+# now live in app.services.local_models, shared with app/jobs.py)
 _easyocr_reader = None
-_job_tokenizer = None
-_job_model = None
-_email_tokenizer = None
-_email_model = None
 
 
 def get_easyocr_reader():
@@ -43,48 +38,6 @@ def get_easyocr_reader():
                 detail=f"Failed to initialize EasyOCR: {str(e)}"
             )
     return _easyocr_reader
-
-
-def load_job_model():
-    """Lazily load and return the fake job model and tokenizer."""
-    global _job_tokenizer, _job_model
-    if _job_tokenizer is None or _job_model is None:
-        model_path = settings.FAKE_JOB_MODEL_PATH
-        if not os.path.exists(model_path):
-            raise HTTPException(
-                status_code=500,
-                detail=f"Fake Job model path does not exist: {model_path}. Please check backend/.env"
-            )
-        try:
-            _job_tokenizer = DistilBertTokenizerFast.from_pretrained(model_path)
-            _job_model = DistilBertForSequenceClassification.from_pretrained(model_path)
-        except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to load Fake Job model: {str(e)}"
-            )
-    return _job_tokenizer, _job_model
-
-
-def load_email_model():
-    """Lazily load and return the email phishing model and tokenizer."""
-    global _email_tokenizer, _email_model
-    if _email_tokenizer is None or _email_model is None:
-        model_path = settings.EMAIL_MODEL_PATH
-        if not os.path.exists(model_path):
-            raise HTTPException(
-                status_code=500,
-                detail=f"Email model path does not exist: {model_path}. Please check backend/.env"
-            )
-        try:
-            _email_tokenizer = DistilBertTokenizerFast.from_pretrained(model_path)
-            _email_model = DistilBertForSequenceClassification.from_pretrained(model_path)
-        except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to load Email model: {str(e)}"
-            )
-    return _email_tokenizer, _email_model
 
 
 class AnalysisRequest(BaseModel):

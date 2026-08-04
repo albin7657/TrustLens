@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import PageHeader from '@/components/PageHeader';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -42,8 +43,10 @@ export default function RAGAssistant() {
   return (
     <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-semibold text-slate-900 mb-2">Recruitment Knowledge & Threat Intelligence</h1>
-        <p className="text-slate-500 mb-8">AI-powered assistant for recruitment fraud detection and threat intelligence</p>
+        <PageHeader
+          title="Recruitment Knowledge & Threat Intelligence"
+          description="AI-powered assistant for recruitment fraud detection and threat intelligence"
+        />
 
         {/* Chat Interface */}
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">

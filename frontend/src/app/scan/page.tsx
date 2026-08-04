@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useTabFromUrl } from '@/hooks/useTabFromUrl';
+import PageHeader from '@/components/PageHeader';
 import {
   analyzeJob,
   analyzeJobByUrl,
@@ -21,19 +22,12 @@ import {
 } from '@/lib/api';
 import FeedbackStrip from '@/components/FeedbackStrip';
 import SignalBreakdown from '@/components/SignalBreakdown';
-import { Search, Mail, UserRound, Building2, AlertTriangle, CheckCircle, Upload, Link as LinkIcon } from 'lucide-react';
+import { Search, Mail, UserRound, Building2, AlertTriangle, CheckCircle, Upload, Link as LinkIcon, Cpu, Sparkles } from 'lucide-react';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 function ScanContent() {
-  const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') || 'job';
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
-
-  useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab) setActiveTab(tab);
-  }, [searchParams]);
+  const { activeTab, switchTab } = useTabFromUrl('job');
 
   // ── Tab 1: Job posting state ──────────────────────────────────────────────
   const [jobMode, setJobMode] = useState<'text' | 'url' | 'image'>('text');
@@ -190,10 +184,10 @@ function ScanContent() {
   return (
     <div className="min-h-screen bg-[#f5f7fb] p-8 lg:p-12 text-slate-800">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Scan Center</h1>
-          <p className="mt-1 text-slate-500">Multi-modal scam detection engine across job postings, messages, recruiters, and companies.</p>
-        </div>
+        <PageHeader
+          title="Scan Center"
+          description="Multi-modal scam detection engine across job postings, messages, recruiters, and companies."
+        />
 
         {/* Navigation Tabs */}
         <div className="mb-8 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
@@ -208,7 +202,7 @@ function ScanContent() {
             return (
               <button
                 key={t.id}
-                onClick={() => setActiveTab(t.id)}
+                onClick={() => switchTab(t.id)}
                 className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
                   active ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
                 }`}
@@ -347,6 +341,42 @@ function ScanContent() {
                     }`}>
                       {jobResult.risk_category} Risk
                     </span>
+                  </div>
+                </div>
+
+                {/* Two models ran independently on this posting — shown side by side so
+                    it's clear the local classifier isn't just decorative, it's a real
+                    contributing signal (see local_model:distilbert in the breakdown below). */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                      <Cpu className="h-4 w-4" />
+                      Local AI Model (DistilBERT)
+                    </div>
+                    {jobResult.local_model ? (
+                      <>
+                        <p className="text-lg font-bold text-slate-900">{jobResult.local_model.label}</p>
+                        <p className="text-sm text-slate-600">
+                          {jobResult.local_model.confidence}% confidence · {jobResult.local_model.risk_level}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm italic text-slate-500">Unavailable for this scan.</p>
+                    )}
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                      <Sparkles className="h-4 w-4" />
+                      Cloud AI (Gemini)
+                    </div>
+                    <p className="text-lg font-bold text-slate-900">
+                      {jobResult.ai_available ? 'Analyzed' : 'Unavailable'}
+                    </p>
+                    <p className="text-sm text-slate-600">
+                      {jobResult.ai_available
+                        ? `${jobResult.signal_breakdown.filter((s) => s.name.startsWith('gemini:')).length} semantic signals scored`
+                        : 'Falling back to rule-based + database signals only'}
+                    </p>
                   </div>
                 </div>
 

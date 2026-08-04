@@ -491,3 +491,103 @@ def generate_fraud_complaint(record: dict) -> dict:
         ],
     }
 
+
+# ── Company reputation: reviews + public registration records ──────────────
+# Neither Trustpilot nor India's MCA offer a usable free/cheap API, so this
+# reads web-search snippets (Tavily, see app/services/reputation_checks.py)
+# instead of hitting either service directly — Gemini only narrates what the
+# search actually found, it never invents a rating or registration number.
+COMPANY_REPUTATION_SUB_SIGNALS = {
+    "review_sentiment": 15,
+    "registration_confidence": 15,
+}
+
+_COMPANY_REPUTATION_PROMPT = """You are a due-diligence analyst. A user is checking whether \
+"{company_name}" is a legitimate company. Below are web search results about (1) its reviews/reputation \
+and (2) its public company registration record (India MCA/CIN or equivalent).
+
+Only use what's in the search results below — do not invent a rating, review count, or registration \
+number that isn't explicitly present in the text.
+
+Score each of these on a 0-100 scale where 0 means "no concern" and 100 means "severe red flag":
+- review_sentiment: based on the review snippets, do reviews/complaints suggest a scam, non-payment, or \
+fraud (high score), a normal mix of workplace complaints (low-medium), or is there no review data at all \
+(treat as mild/neutral — absence of reviews is not itself proof of fraud, small or new legitimate \
+companies often have little online footprint)?
+- registration_confidence: is there credible evidence of a real company registration (CIN, incorporation \
+record) matching this name (low score = found and matches), or no registration record found at all for a \
+company claiming to be a registered business (higher score)?
+
+Respond with ONLY a JSON object of this exact shape, no markdown fences:
+{{
+  "review_sentiment": {{"score": <0-100 int>, "reason": "<one sentence, cite what was actually found>"}},
+  "registration_confidence": {{"score": <0-100 int>, "reason": "<one sentence, cite CIN/registration if found>"}},
+  "summary": "<2-3 sentence overall reputation summary a job seeker would understand>"
+}}
+
+Review/reputation search results:
+\"\"\"
+{review_context}
+\"\"\"
+
+Company registration search results:
+\"\"\"
+{registration_context}
+\"\"\"
+"""
+
+
+def analyze_company_reputation(
+    company_name: str, review_context: str, registration_context: str
+) -> tuple[list[Signal], str]:
+    """Run Tavily search context through Gemini and return (signals, summary).
+
+    Raises GeminiUnavailableError if the call fails or the response can't be
+    parsed — the caller should just skip this signal, not fail the whole
+    company verification over it.
+    """
+    _ensure_configured()
+
+    try:
+        model = genai.GenerativeModel(settings.GEMINI_MODEL)
+        response = model.generate_content(
+            _COMPANY_REPUTATION_PROMPT.format(
+                company_name=company_name,
+                review_context=review_context[:4000] or "(no search results found)",
+                registration_context=registration_context[:4000] or "(no search results found)",
+            ),
+            generation_config=genai.GenerationConfig(
+                response_mime_type="application/json",
+                temperature=0.2,
+            ),
+        )
+        data = json.loads(response.text)
+    except Exception as exc:
+        logger.warning("Gemini company reputation analysis failed: %s", exc)
+        raise GeminiUnavailableError(str(exc)) from exc
+
+    signals: list[Signal] = []
+    for key, weight in COMPANY_REPUTATION_SUB_SIGNALS.items():
+        item = data.get(key)
+        if not isinstance(item, dict) or "score" not in item:
+            continue
+        try:
+            score = float(item["score"])
+        except (TypeError, ValueError):
+            continue
+        score = max(0.0, min(100.0, score))
+        signals.append(
+            Signal(
+                name=f"reputation:{key}",
+                score=score,
+                weight=weight,
+                explanation=str(item.get("reason", "")),
+            )
+        )
+
+    if not signals:
+        raise GeminiUnavailableError("Gemini response contained no usable sub-signals.")
+
+    summary = str(data.get("summary", "")).strip()
+    return signals, summary
+

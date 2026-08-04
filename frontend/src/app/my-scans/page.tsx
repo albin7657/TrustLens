@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { getHistory, ScanHistoryItem } from '@/lib/api';
 import FeedbackStrip from '@/components/FeedbackStrip';
+import PageHeader from '@/components/PageHeader';
 
 const TYPE_ICON: Record<string, string> = {
   job_text: '📝',
@@ -51,10 +52,10 @@ export default function MyScans() {
   return (
     <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
       <div className="mx-auto max-w-6xl">
-        <h1 className="mb-2 text-3xl font-semibold text-slate-900">My Scans</h1>
-        <p className="mb-8 text-slate-600">
-          Every analysis run through TrustLens, newest first. Click a row to see the full stored result.
-        </p>
+        <PageHeader
+          title="My Scans"
+          description="Every analysis run through TrustLens, newest first. Click a row to see the full stored result."
+        />
 
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           {isLoading ? (

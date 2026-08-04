@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import {
   getAdminStats, getReports, reviewReport,
   getAdminUsers, updateUserRole, updateUserStatus, getUserActivity,
@@ -119,6 +121,13 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-10 text-slate-800 font-sans">
       <div className="mx-auto max-w-7xl space-y-8">
+        <Link
+          href="/overview"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-slate-900"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Link>
 
         {/* Header & Quick Status Banner */}
         <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-8 text-white shadow-xl relative overflow-hidden">

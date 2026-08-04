@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useTabFromUrl } from '@/hooks/useTabFromUrl';
+import PageHeader from '@/components/PageHeader';
 import {
   submitReport,
   uploadReportEvidence,
@@ -25,14 +26,7 @@ const REGIONAL_PORTALS = [
 ];
 
 function ReportsContent() {
-  const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') || 'submit';
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
-
-  useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab) setActiveTab(tab);
-  }, [searchParams]);
+  const { activeTab, switchTab } = useTabFromUrl('submit');
 
   // ── Tab 1: Submit Report State ───────────────────────────────────────────
   const [reportType, setReportType] = useState<ReportType>('predatory_internship');
@@ -144,15 +138,15 @@ function ReportsContent() {
   return (
     <div className="min-h-screen bg-[#f5f7fb] p-8 lg:p-12 text-slate-800">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Community & Fraud Reports</h1>
-          <p className="mt-1 text-slate-500">Report fraudulent entities to enrich the community trust database, track submission statuses, or generate evidence PDFs.</p>
-        </div>
+        <PageHeader
+          title="Community & Fraud Reports"
+          description="Report fraudulent entities to enrich the community trust database, track submission statuses, or generate evidence PDFs."
+        />
 
         {/* Navigation Tabs */}
         <div className="mb-8 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
           <button
-            onClick={() => setActiveTab('submit')}
+            onClick={() => switchTab('submit')}
             className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
               activeTab === 'submit' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
@@ -161,7 +155,7 @@ function ReportsContent() {
             Report a Scam
           </button>
           <button
-            onClick={() => setActiveTab('my-reports')}
+            onClick={() => switchTab('my-reports')}
             className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
               activeTab === 'my-reports' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
@@ -170,7 +164,7 @@ function ReportsContent() {
             My Reports
           </button>
           <button
-            onClick={() => setActiveTab('complaint')}
+            onClick={() => switchTab('complaint')}
             className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
               activeTab === 'complaint' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}

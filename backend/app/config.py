@@ -25,6 +25,10 @@ class Settings:
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
+    # Tavily (web search — company reputation: reviews + public registration
+    # records, since neither Trustpilot nor India's MCA offer a usable free API)
+    TAVILY_API_KEY: str = os.getenv("TAVILY_API", "")
+
     # App
     APP_SECRET_KEY: str = os.getenv("APP_SECRET_KEY", "change-me")
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
