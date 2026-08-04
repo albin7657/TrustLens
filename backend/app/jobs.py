@@ -23,11 +23,13 @@ from app.schemas_jobs import (
     JobAnalyzeResponse,
     JobAnalyzeUrlRequest,
     JobUrlFetchFailedResponse,
+    LocalModelResult,
 )
 from app.services import domain_trust, email_checks, gemini_client, graph, internal_db, rule_checks
 from app.services.embeddings import embed_text
+from app.services.local_models import predict_job_fraud
 from app.services.scan_log import log_scan, resolve_user_id
-from app.services.scoring import combine
+from app.services.scoring import Signal, combine
 from app.supabase_client import get_supabase_admin_client
 
 router = APIRouter(prefix="/jobs", tags=["Job Fraud Detection"])
@@ -68,6 +70,32 @@ async def _run_job_analysis(
         rule_checks.check_red_flag_phrases(text),
         rule_checks.check_internship_fee_phrases(text),
     ]
+
+    # Local, frozen DistilBERT classifier — an independent signal alongside
+    # Gemini's, not a replacement for it (see module docstring: no single
+    # source is the final verdict). Best-effort: a missing/broken model
+    # checkpoint just means this one signal is skipped, not a failed scan.
+    local_model: Optional[LocalModelResult] = None
+    try:
+        local_prediction = predict_job_fraud(text)
+        local_model = LocalModelResult(
+            label=local_prediction["label"],
+            confidence=local_prediction["confidence"],
+            risk_level=local_prediction["risk_level"],
+        )
+        signals.append(
+            Signal(
+                name="local_model:distilbert",
+                score=float(local_prediction["risk_score"]),
+                weight=15,
+                explanation=(
+                    f"Local DistilBERT classifier: {local_prediction['label']} "
+                    f"({local_prediction['confidence']}% confidence)."
+                ),
+            )
+        )
+    except Exception:
+        pass
 
     # Milestone P2-6b: fold Modules 2/3/4 into this one paste — cross-check
     # any domain/email mentioned in the posting the same way a standalone
@@ -170,6 +198,7 @@ async def _run_job_analysis(
             "ai_available": ai_available,
             "verdict_label": verdict_label,
             "posting_type": posting_type,
+            "local_model": local_model.model_dump() if local_model else None,
         },
         input_ref=input_ref,
         user_id=resolve_user_id(authorization),
@@ -183,6 +212,7 @@ async def _run_job_analysis(
         ai_available=ai_available,
         verdict_label=verdict_label,
         posting_type=posting_type,
+        local_model=local_model,
         scan_id=scan_id,
     )
 

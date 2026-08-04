@@ -72,6 +72,12 @@ async function putJSON<T>(path: string, body: unknown): Promise<T> {
 
 // ── Module 1: Job Fraud Detection ──────────────────────────────────────────
 
+export interface LocalModelResult {
+  label: string;
+  confidence: number;
+  risk_level: string;
+}
+
 export interface JobAnalyzeResult {
   risk_score: number;
   risk_category: RiskCategory;
@@ -80,6 +86,7 @@ export interface JobAnalyzeResult {
   ai_available: boolean;
   verdict_label?: string | null;
   posting_type?: string | null;
+  local_model?: LocalModelResult | null;
   scan_id?: string | null;
 }
 

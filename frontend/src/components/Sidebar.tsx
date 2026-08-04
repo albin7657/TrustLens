@@ -26,7 +26,7 @@ interface UserData {
   avatar_url?: string | null;
 }
 
-export default function Sidebar() {
+export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
@@ -90,7 +90,9 @@ export default function Sidebar() {
   const allItems = isAdmin ? [...MENU_ITEMS, ADMIN_ITEM] : MENU_ITEMS;
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-slate-200 bg-white/95 backdrop-blur-xl">
+    <aside
+      className={`${mobile ? 'relative' : 'fixed left-0 top-0'} z-40 h-screen w-64 border-r border-slate-200 bg-white/95 backdrop-blur-xl ${mobile ? 'block' : 'hidden lg:block'}`}
+    >
       <div className="flex h-full flex-col">
         {/* Logo */}
         <div className="border-b border-slate-200 p-5">
@@ -111,7 +113,16 @@ export default function Sidebar() {
         <nav className="flex-1 overflow-y-auto p-3">
           <ul className="space-y-1">
             {allItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive =
+                pathname === item.href ||
+                pathname.startsWith(`${item.href}/`) ||
+                (item.href === '/scan' &&
+                  ['/job-scanner', '/communication-analyzer', '/recruiter-verification', '/company-verification'].includes(
+                    pathname,
+                  )) ||
+                (item.href === '/intelligence' && pathname === '/trust-repository') ||
+                (item.href === '/reports' &&
+                  ['/community-reports', '/reporting-assistant'].includes(pathname));
               const isAdminItem = item.href === "/admin";
               return (
                 <li key={item.href}>

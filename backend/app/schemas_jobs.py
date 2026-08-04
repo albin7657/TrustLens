@@ -12,6 +12,18 @@ class JobAnalyzeRequest(BaseModel):
     company_name: Optional[str] = None
 
 
+class LocalModelResult(BaseModel):
+    """Raw output of the local, frozen DistilBERT classifier — shown
+    alongside the Gemini-driven composite so it's visible that both models
+    ran, not just the cloud one. Its score is also folded into
+    signal_breakdown as `local_model:distilbert`, so this is a convenience
+    duplicate for a dedicated UI panel, not a second source of truth."""
+
+    label: str
+    confidence: float
+    risk_level: str
+
+
 class JobAnalyzeResponse(BaseModel):
     risk_score: float
     risk_category: str
@@ -23,6 +35,7 @@ class JobAnalyzeResponse(BaseModel):
     # can show that specific warning instead of the generic scam banner.
     verdict_label: Optional[str] = None
     posting_type: Optional[str] = None
+    local_model: Optional[LocalModelResult] = None
     scan_id: Optional[str] = None
 
 

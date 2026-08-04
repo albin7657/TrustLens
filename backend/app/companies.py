@@ -14,7 +14,7 @@ from fastapi import APIRouter, Header, HTTPException, status
 
 from app.schemas_common import SignalBreakdownItem
 from app.schemas_companies import CompanyVerifyRequest, CompanyVerifyResponse
-from app.services import domain_trust, graph, internal_db
+from app.services import domain_trust, graph, internal_db, reputation_checks
 from app.services.scan_log import log_scan, resolve_user_id
 from app.services.scoring import combine
 from app.supabase_client import get_supabase_admin_client
@@ -26,7 +26,11 @@ _SCHEME_RE = re.compile(r"^https?://", re.IGNORECASE)
 
 def _normalize_domain(raw: str) -> str:
     domain = _SCHEME_RE.sub("", raw.strip().lower())
-    return domain.split("/")[0]
+    domain = domain.split("/")[0].split(":")[0].replace(" ", "")
+    if "." not in domain and domain:
+        domain = f"{domain}.com"
+    return domain
+
 
 
 @router.post(
@@ -54,6 +58,11 @@ async def verify_company(payload: CompanyVerifyRequest, authorization: Optional[
     neighbor_signal = graph.flagged_neighbor_signal("company", domain)
     if neighbor_signal:
         signals.append(neighbor_signal)
+
+    # Reviews + public registration records (Trustpilot/Glassdoor/Google via
+    # search, since neither has a usable free API — see reputation_checks.py).
+    # Best-effort: silently contributes nothing if Tavily/Gemini are unavailable.
+    signals.extend(reputation_checks.check_company_reputation(payload.name or domain, domain))
 
     composite = combine(signals)
     trust_score = round(100 - composite.final_score, 2)
