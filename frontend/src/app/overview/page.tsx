@@ -113,7 +113,7 @@ function StatCard({ icon: Icon, label, value, color, sub }: {
       <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${color}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <p className="text-sm text-slate-500">{label}</p>
+      <p className="text-sm font-medium text-slate-500">{label}</p>
       <p className="mt-1 text-3xl font-bold text-slate-900">{value}</p>
       {sub && <p className="mt-1 text-xs text-slate-400">{sub}</p>}
     </div>
@@ -162,7 +162,7 @@ export default function Overview() {
   const myReports: ReportStatusSummary[] = stats?.my_report_statuses ?? [];
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] p-8 lg:p-12 text-slate-800">
+    <div className="min-h-screen bg-[#f5f7fb] text-slate-800">
       <div className="mx-auto max-w-7xl">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
@@ -232,7 +232,7 @@ export default function Overview() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">Recent activity</h2>
-              <Link href="/my-scans" className="flex items-center gap-1 text-xs text-indigo-600 hover:underline">
+              <Link href="/my-scans" className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline">
                 View all <ChevronRight className="h-3 w-3" />
               </Link>
             </div>
@@ -268,7 +268,7 @@ export default function Overview() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">My reports</h2>
-              <Link href="/community-reports" className="flex items-center gap-1 text-xs text-indigo-600 hover:underline">
+              <Link href="/community-reports" className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline">
                 Submit new <ChevronRight className="h-3 w-3" />
               </Link>
             </div>

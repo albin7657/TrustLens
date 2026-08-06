@@ -30,13 +30,18 @@ export default function DashboardLayout({
   }, [pathname]);
 
   if (isChecking) {
-    return <div className="min-h-screen bg-[#f5f7fb]" />;
+    return <div className="min-h-screen bg-transparent" />;
   }
 
   const showBackToHome = pathname !== '/overview';
 
   return (
-    <div className="flex min-h-screen bg-[#f5f7fb] text-slate-800">
+    <div className="relative flex min-h-screen overflow-hidden text-slate-800 bg-[#f5f7fb]">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-slate-900/5 blur-3xl" />
+        <div className="absolute right-0 top-24 h-80 w-80 rounded-full bg-sky-400/10 blur-3xl" />
+        <div className="absolute bottom-0 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-indigo-400/5 blur-3xl" />
+      </div>
       <Sidebar />
 
       {/* Mobile sidebar overlay */}
@@ -62,9 +67,9 @@ export default function DashboardLayout({
         </div>
       )}
 
-      <div className="flex min-h-screen flex-1 flex-col lg:ml-64">
+      <div className="relative z-10 flex min-h-screen flex-1 flex-col lg:ml-64">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-xl lg:hidden">
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-2xl lg:hidden">
           <button
             type="button"
             aria-label="Open navigation menu"
@@ -84,7 +89,7 @@ export default function DashboardLayout({
           )}
         </header>
 
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 p-4 lg:p-8">{children}</main>
       </div>
     </div>
   );

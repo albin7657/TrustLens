@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ArrowRight, Building2, LockKeyhole, Mail, ShieldCheck, UserRound, Eye, EyeOff, Sparkles, AlertTriangle, LogIn } from 'lucide-react';
+import { ArrowRight, Building2, LockKeyhole, Mail, UserRound, Eye, EyeOff, Sparkles, AlertTriangle, LogIn } from 'lucide-react';
+import TrustLensLogo from '@/components/TrustLensLogo';
+import BackgroundVideo from '@/components/BackgroundVideo';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
@@ -27,17 +29,17 @@ function parseErrorDetail(detail: string): ParsedError {
 function DuplicateAccountBanner({ error, onGoogleLogin }: { error: ParsedError; onGoogleLogin?: () => void }) {
   if (error.type === 'provider_mismatch_google') {
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm">
+      <div className="rounded-2xl border border-amber-500/30 bg-amber-950/40 p-4 text-sm backdrop-blur-xl">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-400 mt-0.5" />
           <div>
-            <p className="font-semibold text-amber-800 mb-1">This account uses Google Sign-In</p>
-            <p className="text-amber-700 leading-relaxed">{error.message}</p>
+            <p className="font-semibold text-amber-300 mb-1">This account uses Google Sign-In</p>
+            <p className="text-amber-200/90 leading-relaxed">{error.message}</p>
             {onGoogleLogin && (
               <button
                 type="button"
                 onClick={onGoogleLogin}
-                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-amber-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-amber-800"
+                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-amber-500/20 border border-amber-500/40 px-4 py-2 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/30"
               >
                 <LogIn className="h-3.5 w-3.5" />
                 Sign in with Google instead
@@ -50,19 +52,19 @@ function DuplicateAccountBanner({ error, onGoogleLogin }: { error: ParsedError; 
   }
   if (error.type === 'account_exists') {
     return (
-      <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm">
+      <div className="rounded-2xl border border-cyan-500/30 bg-cyan-950/40 p-4 text-sm backdrop-blur-xl">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-blue-600 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 shrink-0 text-cyan-400 mt-0.5" />
           <div>
-            <p className="font-semibold text-blue-800 mb-1">Account already exists</p>
-            <p className="text-blue-700 leading-relaxed">{error.message}</p>
+            <p className="font-semibold text-cyan-300 mb-1">Account already exists</p>
+            <p className="text-cyan-200/90 leading-relaxed">{error.message}</p>
           </div>
         </div>
       </div>
     );
   }
   return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div className="rounded-2xl border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-300 backdrop-blur-xl">
       {error.message}
     </div>
   );
@@ -112,22 +114,17 @@ export default function LoginPage() {
         return;
       }
 
-      // ── Validate that the selected role matches the actual DB role ──────────
-      // Fetch the real role from the backend before storing anything.
+      // Fetch user profile info
       const meRes = await fetch(`${BACKEND_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${data.access_token}` },
       });
       const meData = await meRes.json();
-      const dbRole: string = meData.role || 'user'; // actual role from profiles table
+      const dbRole: string = meData.role || 'user';
 
-      // Role mapping:
-      //   UI "user"        → DB role must be "user"
-      //   UI "institution" → DB role must be "admin" (institution accounts are promoted)
       const isUserAccount = dbRole === 'user';
       const isAdminAccount = dbRole === 'admin';
 
       if (role === 'user' && !isUserAccount) {
-        // Admin/institution account trying to log in via User selector
         setErrorMessage(
           'This account has institution or admin access. Please select the "Institution" role to log in.'
         );
@@ -136,7 +133,6 @@ export default function LoginPage() {
       }
 
       if (role === 'institution' && !isAdminAccount) {
-        // Regular user trying to log in as Institution — strictly blocked
         setErrorMessage(
           'This account does not have institution or admin access. ' +
           'Please register as an Institution first, or select "User" to log in.'
@@ -145,11 +141,9 @@ export default function LoginPage() {
         return;
       }
 
-      // ── Store tokens with the verified DB role ───────────────────────────────
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('refresh_token', data.refresh_token);
       localStorage.setItem('user', JSON.stringify(meData));
-      // Always use the authoritative DB role, never the UI selector
       localStorage.setItem('user_role', dbRole);
 
       router.push('/overview');
@@ -180,76 +174,83 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-slate-800">
-      <header className="border-b border-slate-200 bg-white/90 backdrop-blur-xl">
+    <main className="min-h-screen bg-[#080c14] text-slate-100 relative overflow-hidden">
+      {/* Fullscreen background video */}
+      <BackgroundVideo videoSrc="/videos/cybersecurity_showcase_video.mp4" variant="ambient" />
+      {/* Header */}
+      <header className="relative z-10 border-b border-white/15 bg-slate-950/40 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-sm">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold tracking-tight text-slate-900">TrustLens</p>
-            </div>
+          <Link href="/" className="group">
+            <TrustLensLogo size="md" />
           </Link>
 
           <div className="hidden items-center gap-3 sm:flex">
-            <Link href="/signup" className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+            <Link
+              href="/signup"
+              className="rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 transition hover:from-cyan-400 hover:to-blue-500"
+            >
               Sign up
             </Link>
-            <Link href="/" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:text-slate-900">
+            <Link
+              href="/"
+              className="rounded-full border border-slate-700/80 bg-slate-900/60 px-5 py-2 text-sm font-medium text-slate-300 backdrop-blur-md transition hover:border-cyan-500/50 hover:text-white"
+            >
               Back home
             </Link>
           </div>
         </div>
       </header>
 
-      <section className="mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl gap-10 px-6 py-10 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:px-8 lg:py-16">
+      {/* Main Form Section */}
+      <section className="relative z-10 mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl gap-12 px-6 py-12 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:px-8">
         <div className="max-w-2xl">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
-            <Sparkles className="h-4 w-4" />
-            One secure login for both access types
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-slate-900/80 px-4 py-2 text-sm font-medium text-cyan-300 backdrop-blur-xl shadow-lg shadow-cyan-950/40">
+            <Sparkles className="h-4 w-4 text-cyan-400 animate-pulse" />
+            One secure portal for all access types
           </div>
 
-          <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-            Welcome back.
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
+            Welcome back to{' '}
+            <span className="bg-gradient-to-r from-cyan-300 via-sky-100 to-blue-300 bg-clip-text text-transparent">
+              TrustLens
+            </span>
           </h1>
-          <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">
-            Choose your role, enter your credentials, and continue to the right dashboard.
+          <p className="mt-5 max-w-xl text-lg leading-8 text-white/90 font-semibold">
+            Choose your role, enter your credentials, and access your verified trust intelligence workspace.
           </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center gap-3 text-slate-900">
+            <div className="rounded-2xl border border-white/15 bg-slate-950/30 p-5 backdrop-blur-md shadow-xl">
+              <div className="flex items-center gap-3 text-cyan-400">
                 <Building2 className="h-5 w-5" />
-                <span className="font-semibold">Institution</span>
+                <span className="font-bold text-white">Institution</span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-slate-500">For placement offices, HR, and compliance teams.</p>
+              <p className="mt-3 text-sm leading-6 text-slate-200">For placement offices, HR leaders, and compliance teams.</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center gap-3 text-slate-900">
+            <div className="rounded-2xl border border-white/15 bg-slate-950/30 p-5 backdrop-blur-md shadow-xl">
+              <div className="flex items-center gap-3 text-cyan-400">
                 <UserRound className="h-5 w-5" />
-                <span className="font-semibold">User</span>
+                <span className="font-bold text-white">User</span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-slate-500">For candidates and job seekers using the trust tools.</p>
+              <p className="mt-3 text-sm leading-6 text-slate-200">For candidates and job seekers scanning opportunities.</p>
             </div>
           </div>
         </div>
 
-        <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white">
-              <ShieldCheck className="h-7 w-7" />
-            </div>
+        {/* Login Card */}
+        <section className="rounded-[2.5rem] border border-white/20 bg-slate-950/50 p-7 backdrop-blur-2xl shadow-2xl sm:p-9">
+          <div className="flex items-center gap-4">
+            <TrustLensLogo size="lg" showText={false} />
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Secure access</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Login</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-400">Secure Access</p>
+              <h2 className="mt-1 text-2xl font-bold text-white">Sign In</h2>
             </div>
           </div>
 
           {/* Role selector cards */}
           <div className="mt-6 space-y-2">
-            <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-              <UserRound className="h-4 w-4" />
+            <span className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+              <UserRound className="h-4 w-4 text-cyan-400" />
               Select role
             </span>
             <div className="grid grid-cols-2 gap-3">
@@ -258,42 +259,42 @@ export default function LoginPage() {
                 onClick={() => setRole('institution')}
                 className={`flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition ${
                   role === 'institution'
-                    ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900/10'
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                    ? 'border-cyan-500/60 bg-gradient-to-br from-cyan-500/20 to-blue-600/10 text-white shadow-lg shadow-cyan-950/40 ring-1 ring-cyan-500/40'
+                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700 hover:bg-slate-900/80 hover:text-slate-200'
                 }`}
               >
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                  <Building2 className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-sm font-bold text-white">
+                  <Building2 className="h-4 w-4 text-cyan-400" />
                   Institution
                 </div>
-                <p className="text-xs text-slate-500">Placement officers and teams</p>
+                <p className="text-xs text-slate-400">Placement officers & teams</p>
               </button>
               <button
                 type="button"
                 onClick={() => setRole('user')}
                 className={`flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition ${
                   role === 'user'
-                    ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900/10'
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                    ? 'border-cyan-500/60 bg-gradient-to-br from-cyan-500/20 to-blue-600/10 text-white shadow-lg shadow-cyan-950/40 ring-1 ring-cyan-500/40'
+                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700 hover:bg-slate-900/80 hover:text-slate-200'
                 }`}
               >
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                  <UserRound className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-sm font-bold text-white">
+                  <UserRound className="h-4 w-4 text-cyan-400" />
                   User
                 </div>
-                <p className="text-xs text-slate-500">Candidates and job seekers</p>
+                <p className="text-xs text-slate-400">Candidates & seekers</p>
               </button>
             </div>
           </div>
 
-          {/* Google OAuth Button - Available ONLY for User role */}
+          {/* Google OAuth Button */}
           {role === 'user' ? (
             <>
               <div className="mt-6">
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
-                  className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3.5 text-sm font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
+                  className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-slate-700 hover:bg-slate-900 hover:text-white"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -305,25 +306,24 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              {/* Divider */}
               <div className="mt-6 flex items-center gap-4">
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-xs font-medium uppercase tracking-widest text-slate-400">or sign in with email</span>
-                <div className="h-px flex-1 bg-slate-200" />
+                <div className="h-px flex-1 bg-slate-800" />
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">or email</span>
+                <div className="h-px flex-1 bg-slate-800" />
               </div>
             </>
           ) : (
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs leading-relaxed text-slate-600">
-              <span className="font-semibold text-slate-900 block mb-1">Institutional Access Notice</span>
-              Institution & Admin accounts require email & password authentication. Google Sign-in is reserved for candidate User accounts.
+            <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950/80 p-4 text-xs leading-relaxed text-slate-400">
+              <span className="font-semibold text-cyan-400 block mb-1">Institutional Access Notice</span>
+              Institution accounts require email & password authentication.
             </div>
           )}
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
 
             <label className="block space-y-2">
-              <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <Mail className="h-4 w-4" />
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                <Mail className="h-4 w-4 text-cyan-400" />
                 Email address
               </span>
               <input
@@ -332,13 +332,13 @@ export default function LoginPage() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="name@company.com"
-                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-900/10"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
               />
             </label>
 
             <label className="block space-y-2">
-              <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <LockKeyhole className="h-4 w-4" />
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                <LockKeyhole className="h-4 w-4 text-cyan-400" />
                 Password
               </span>
               <div className="relative">
@@ -348,12 +348,12 @@ export default function LoginPage() {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="Enter your password"
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-900/10"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -362,17 +362,17 @@ export default function LoginPage() {
 
             {parsedError && <DuplicateAccountBanner error={parsedError} onGoogleLogin={role === 'user' ? handleGoogleLogin : undefined} />}
             {!parsedError && errorMessage ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-2xl border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-300 backdrop-blur-xl">
                 {errorMessage}
               </div>
             ) : null}
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-slate-600">
-                <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900/20" />
+              <label className="flex items-center gap-2 text-slate-400 cursor-pointer">
+                <input type="checkbox" className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-cyan-500 focus:ring-cyan-500/20" />
                 Remember me
               </label>
-              <Link href="#" className="font-medium text-slate-700 transition hover:text-slate-900">
+              <Link href="#" className="font-medium text-cyan-400 transition hover:text-cyan-300">
                 Forgot password?
               </Link>
             </div>
@@ -380,7 +380,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 transition hover:from-cyan-400 hover:to-blue-500 hover:shadow-cyan-500/40 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -392,15 +392,15 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  Continue
+                  Continue to Workspace
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </button>
 
-            <p className="text-center text-sm text-slate-500">
+            <p className="text-center text-sm text-slate-400">
               Don&apos;t have an account?{' '}
-              <Link href="/signup" className="font-medium text-slate-800 transition hover:text-slate-900">
+              <Link href="/signup" className="font-semibold text-cyan-400 transition hover:text-cyan-300">
                 Sign up
               </Link>
             </p>
@@ -410,3 +410,4 @@ export default function LoginPage() {
     </main>
   );
 }
+

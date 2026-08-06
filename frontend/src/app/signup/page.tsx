@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ArrowRight, LockKeyhole, Mail, ShieldCheck, User, Users, Eye, EyeOff, CheckCircle2, Building2, UserRound, AlertTriangle, LogIn } from 'lucide-react';
+import { ArrowRight, LockKeyhole, Mail, User, Users, Eye, EyeOff, CheckCircle2, Building2, UserRound, AlertTriangle, LogIn } from 'lucide-react';
+import TrustLensLogo from '@/components/TrustLensLogo';
+import BackgroundVideo from '@/components/BackgroundVideo';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
@@ -27,15 +29,15 @@ function parseErrorDetail(detail: string): ParsedError {
 function DuplicateAccountBanner({ error }: { error: ParsedError }) {
   if (error.type === 'provider_mismatch_google') {
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm">
+      <div className="rounded-2xl border border-amber-500/30 bg-amber-950/40 p-4 text-sm backdrop-blur-xl">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-400 mt-0.5" />
           <div>
-            <p className="font-semibold text-amber-800 mb-1">Account registered via Google</p>
-            <p className="text-amber-700 leading-relaxed">{error.message}</p>
+            <p className="font-semibold text-amber-300 mb-1">Account registered via Google</p>
+            <p className="text-amber-200/90 leading-relaxed">{error.message}</p>
             <Link
               href="/login"
-              className="mt-3 inline-flex items-center gap-2 rounded-xl bg-amber-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-amber-800"
+              className="mt-3 inline-flex items-center gap-2 rounded-xl bg-amber-500/20 border border-amber-500/40 px-4 py-2 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/30"
             >
               <LogIn className="h-3.5 w-3.5" />
               Go to Login &amp; Sign in with Google
@@ -47,15 +49,15 @@ function DuplicateAccountBanner({ error }: { error: ParsedError }) {
   }
   if (error.type === 'account_exists') {
     return (
-      <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm">
+      <div className="rounded-2xl border border-cyan-500/30 bg-cyan-950/40 p-4 text-sm backdrop-blur-xl">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-blue-600 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 shrink-0 text-cyan-400 mt-0.5" />
           <div>
-            <p className="font-semibold text-blue-800 mb-1">Account already exists</p>
-            <p className="text-blue-700 leading-relaxed">{error.message}</p>
+            <p className="font-semibold text-cyan-300 mb-1">Account already exists</p>
+            <p className="text-cyan-200/90 leading-relaxed">{error.message}</p>
             <Link
               href="/login"
-              className="mt-3 inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-800"
+              className="mt-3 inline-flex items-center gap-2 rounded-xl bg-cyan-500/20 border border-cyan-500/40 px-4 py-2 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-500/30"
             >
               <LogIn className="h-3.5 w-3.5" />
               Go to Login
@@ -66,7 +68,7 @@ function DuplicateAccountBanner({ error }: { error: ParsedError }) {
     );
   }
   return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div className="rounded-2xl border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-300 backdrop-blur-xl">
       {error.message}
     </div>
   );
@@ -93,26 +95,29 @@ export default function SignupPage() {
       router.replace('/overview');
     }
   }, [router]);
+
   const passwordChecks = {
     length: password.length >= 8,
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
     number: /[0-9]/.test(password),
-    match: password.length > 0 && password === confirmPassword,
+    match: password === confirmPassword && confirmPassword.length > 0,
   };
+
+  const isPasswordValid =
+    passwordChecks.length &&
+    passwordChecks.uppercase &&
+    passwordChecks.lowercase &&
+    passwordChecks.number &&
+    passwordChecks.match;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage('');
     setParsedError(null);
 
-    if (!passwordChecks.length || !passwordChecks.uppercase || !passwordChecks.lowercase || !passwordChecks.number) {
-      setErrorMessage('Password does not meet the requirements.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match.');
+    if (!isPasswordValid) {
+      setErrorMessage('Please ensure all password requirements are met.');
       return;
     }
 
@@ -122,13 +127,18 @@ export default function SignupPage() {
       const res = await fetch(`${BACKEND_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, full_name: fullName || undefined, requested_role: role }),
+        body: JSON.stringify({
+          email,
+          password,
+          full_name: fullName || null,
+          role,
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        const parsed = parseErrorDetail(data.detail || 'Sign-up failed. Please try again.');
+        const parsed = parseErrorDetail(data.detail || 'Failed to create account.');
         if (parsed.type !== 'generic') {
           setParsedError(parsed);
         } else {
@@ -138,19 +148,11 @@ export default function SignupPage() {
         return;
       }
 
-      // If we got tokens, store them and redirect
-      if (data.access_token) {
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('refresh_token', data.refresh_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('user_role', role === 'institution' ? 'admin' : role);
-        router.push('/overview');
-      } else {
-        // Email confirmation required — persist role for when they log in
-        localStorage.setItem('user_role', role === 'institution' ? 'admin' : role);
+      setIsSuccess(true);
+      setTimeout(() => {
+        router.push('/login');
+      }, 2500);
 
-        setIsSuccess(true);
-      }
     } catch {
       setErrorMessage('Could not connect to the server. Please try again.');
     } finally {
@@ -178,63 +180,57 @@ export default function SignupPage() {
 
   if (isSuccess) {
     return (
-      <main className="min-h-screen bg-[#f5f7fb] text-slate-800">
-        <div className="flex min-h-screen items-center justify-center px-6">
-          <div className="w-full max-w-md rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm text-center">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
-              <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-            </div>
-            <h2 className="text-2xl font-semibold text-slate-900">Check your email</h2>
-            <p className="mt-4 leading-relaxed text-slate-600">
-              We&apos;ve sent a confirmation link to <span className="font-semibold text-slate-900">{email}</span>. Click the link in the email to activate your account.
-            </p>
-            <Link
-              href="/login"
-              className="mt-8 inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-            >
-              Go to Login
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+      <main className="flex min-h-screen items-center justify-center bg-[#080c14] p-6 text-slate-100">
+        <div className="max-w-md rounded-[2.5rem] border border-cyan-500/30 bg-slate-900/80 p-8 text-center backdrop-blur-2xl shadow-2xl shadow-cyan-950/50">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+            <CheckCircle2 className="h-8 w-8" />
           </div>
+          <h2 className="mt-4 text-2xl font-bold text-white">Account Created!</h2>
+          <p className="mt-2 text-sm text-slate-300">
+            Your account has been set up successfully. Redirecting you to sign in...
+          </p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-slate-800">
+    <main className="min-h-screen bg-[#080c14] text-slate-100 relative overflow-hidden">
+      {/* Fullscreen background video */}
+      <BackgroundVideo videoSrc="/videos/cybersecurity_showcase_video.mp4" variant="ambient" />
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white/90 backdrop-blur-xl">
+      <header className="relative z-10 border-b border-white/15 bg-slate-950/40 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-sm">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold tracking-tight text-slate-900">TrustLens</p>
-            </div>
+          <Link href="/" className="group">
+            <TrustLensLogo size="md" />
           </Link>
 
           <div className="hidden items-center gap-3 sm:flex">
-            <Link href="/login" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:text-slate-900">
+            <Link
+              href="/login"
+              className="rounded-full border border-slate-700/80 bg-slate-900/60 px-5 py-2 text-sm font-medium text-slate-300 backdrop-blur-md transition hover:border-cyan-500/50 hover:text-white"
+            >
               Log in
             </Link>
           </div>
         </div>
       </header>
 
-      <section className="mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl gap-10 px-6 py-10 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:px-8 lg:py-16">
+      <section className="relative z-10 mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl gap-12 px-6 py-12 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:px-8">
         {/* Left side info */}
         <div className="max-w-2xl">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
-            <Users className="h-4 w-4" />
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-slate-950/40 px-4 py-2 text-sm font-medium text-cyan-300 backdrop-blur-md shadow-lg">
+            <Users className="h-4 w-4 text-cyan-400" />
             Join the trusted recruitment network
           </div>
 
-          <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-            Create your<br />account.
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
+            Create your<br />
+            <span className="bg-gradient-to-r from-cyan-300 via-sky-100 to-blue-300 bg-clip-text text-transparent">
+              TrustLens Account
+            </span>
           </h1>
-          <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">
+          <p className="mt-5 max-w-xl text-lg leading-8 text-white/90 font-semibold">
             Sign up to access AI-powered scam detection, recruiter verification, and recruitment trust intelligence.
           </p>
 
@@ -242,34 +238,32 @@ export default function SignupPage() {
             {[
               'Instant fraud detection on job postings',
               'Verify recruiters and companies in seconds',
-              'Community-driven scam reporting',
+              'Community-driven scam reporting & database',
             ].map((feature) => (
-              <div key={feature} className="flex items-center gap-3 text-slate-600">
-                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-100">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-slate-700" />
+              <div key={feature} className="flex items-center gap-3 text-slate-300">
+                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-sm">{feature}</span>
+                <span className="text-sm font-medium">{feature}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Signup form card */}
-        <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white">
-              <ShieldCheck className="h-7 w-7" />
-            </div>
+        <section className="rounded-[2.5rem] border border-white/20 bg-slate-950/50 p-7 backdrop-blur-2xl shadow-2xl sm:p-9">
+          <div className="flex items-center gap-4">
+            <TrustLensLogo size="lg" showText={false} />
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Get started</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Sign up</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-400">Get Started</p>
+              <h2 className="mt-1 text-2xl font-bold text-white">Create Account</h2>
             </div>
           </div>
 
           {/* Role selector cards */}
           <div className="mt-6 space-y-2">
-            <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-              <UserRound className="h-4 w-4" />
+            <span className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+              <UserRound className="h-4 w-4 text-cyan-400" />
               Select role
             </span>
             <div className="grid grid-cols-2 gap-3">
@@ -278,42 +272,42 @@ export default function SignupPage() {
                 onClick={() => setRole('institution')}
                 className={`flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition ${
                   role === 'institution'
-                    ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900/10'
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                    ? 'border-cyan-500/60 bg-gradient-to-br from-cyan-500/20 to-blue-600/10 text-white shadow-lg shadow-cyan-950/40 ring-1 ring-cyan-500/40'
+                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700 hover:bg-slate-900/80 hover:text-slate-200'
                 }`}
               >
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                  <Building2 className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-sm font-bold text-white">
+                  <Building2 className="h-4 w-4 text-cyan-400" />
                   Institution
                 </div>
-                <p className="text-xs text-slate-500">Placement officers and teams</p>
+                <p className="text-xs text-slate-400">Placement officers & teams</p>
               </button>
               <button
                 type="button"
                 onClick={() => setRole('user')}
                 className={`flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition ${
                   role === 'user'
-                    ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900/10'
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                    ? 'border-cyan-500/60 bg-gradient-to-br from-cyan-500/20 to-blue-600/10 text-white shadow-lg shadow-cyan-950/40 ring-1 ring-cyan-500/40'
+                    : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700 hover:bg-slate-900/80 hover:text-slate-200'
                 }`}
               >
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                  <UserRound className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-sm font-bold text-white">
+                  <UserRound className="h-4 w-4 text-cyan-400" />
                   User
                 </div>
-                <p className="text-xs text-slate-500">Candidates and job seekers</p>
+                <p className="text-xs text-slate-400">Candidates & seekers</p>
               </button>
             </div>
           </div>
 
-          {/* Google OAuth Button - Available ONLY for User role */}
+          {/* Google OAuth Button */}
           {role === 'user' ? (
             <>
               <div className="mt-6">
                 <button
                   type="button"
                   onClick={handleGoogleSignup}
-                  className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3.5 text-sm font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
+                  className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition hover:border-slate-700 hover:bg-slate-900 hover:text-white"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -325,17 +319,16 @@ export default function SignupPage() {
                 </button>
               </div>
 
-              {/* Divider */}
               <div className="mt-6 flex items-center gap-4">
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-xs font-medium uppercase tracking-widest text-slate-400">or sign up with email</span>
-                <div className="h-px flex-1 bg-slate-200" />
+                <div className="h-px flex-1 bg-slate-800" />
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">or email</span>
+                <div className="h-px flex-1 bg-slate-800" />
               </div>
             </>
           ) : (
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs leading-relaxed text-slate-600">
-              <span className="font-semibold text-slate-900 block mb-1">Institutional Access Notice</span>
-              Institution & Admin accounts require email & password authentication. Google Sign-in is reserved for candidate User accounts.
+            <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950/80 p-4 text-xs leading-relaxed text-slate-400">
+              <span className="font-semibold text-cyan-400 block mb-1">Institutional Access Notice</span>
+              Institution accounts require email & password authentication.
             </div>
           )}
 
@@ -343,23 +336,23 @@ export default function SignupPage() {
 
             {/* Full Name */}
             <label className="block space-y-2">
-              <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <User className="h-4 w-4" />
-                Full name <span className="text-xs text-slate-400">(optional)</span>
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                <User className="h-4 w-4 text-cyan-400" />
+                Full name <span className="text-xs text-slate-500">(optional)</span>
               </span>
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="John Doe"
-                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-900/10"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
               />
             </label>
 
             {/* Email */}
             <label className="block space-y-2">
-              <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <Mail className="h-4 w-4" />
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                <Mail className="h-4 w-4 text-cyan-400" />
                 Email address
               </span>
               <input
@@ -368,14 +361,14 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
-                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-900/10"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
               />
             </label>
 
             {/* Password */}
             <label className="block space-y-2">
-              <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <LockKeyhole className="h-4 w-4" />
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                <LockKeyhole className="h-4 w-4 text-cyan-400" />
                 Password
               </span>
               <div className="relative">
@@ -385,12 +378,12 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Create a strong password"
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-900/10"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -399,15 +392,15 @@ export default function SignupPage() {
 
             {/* Password strength indicators */}
             {password.length > 0 && (
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-xl border border-slate-800 bg-slate-950/80 px-4 py-3">
                 {[
                   { check: passwordChecks.length, label: '8+ characters' },
                   { check: passwordChecks.uppercase, label: 'Uppercase letter' },
                   { check: passwordChecks.lowercase, label: 'Lowercase letter' },
                   { check: passwordChecks.number, label: 'Number' },
                 ].map((item) => (
-                  <span key={item.label} className={`flex items-center gap-1.5 text-xs ${item.check ? 'text-emerald-600' : 'text-slate-400'}`}>
-                    <span className={`inline-block h-1.5 w-1.5 rounded-full ${item.check ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                  <span key={item.label} className={`flex items-center gap-1.5 text-xs font-medium ${item.check ? 'text-emerald-400' : 'text-slate-500'}`}>
+                    <span className={`inline-block h-1.5 w-1.5 rounded-full ${item.check ? 'bg-emerald-400' : 'bg-slate-700'}`} />
                     {item.label}
                   </span>
                 ))}
@@ -416,8 +409,8 @@ export default function SignupPage() {
 
             {/* Confirm Password */}
             <label className="block space-y-2">
-              <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <LockKeyhole className="h-4 w-4" />
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                <LockKeyhole className="h-4 w-4 text-cyan-400" />
                 Confirm password
               </span>
               <div className="relative">
@@ -427,28 +420,28 @@ export default function SignupPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repeat your password"
-                  className={`w-full rounded-2xl border bg-white px-4 py-3 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-2 ${
+                  className={`w-full rounded-2xl border bg-slate-950/80 px-4 py-3 pr-11 text-sm text-white outline-none transition placeholder:text-slate-500 focus:ring-2 ${
                     confirmPassword.length > 0 && !passwordChecks.match
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
-                      : 'border-slate-300 focus:border-slate-500 focus:ring-slate-900/10'
+                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-slate-800 focus:border-cyan-500 focus:ring-cyan-500/20'
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition"
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {confirmPassword.length > 0 && !passwordChecks.match && (
-                <p className="text-xs text-red-600">Passwords do not match</p>
+                <p className="text-xs text-red-400">Passwords do not match</p>
               )}
             </label>
 
             {parsedError && <DuplicateAccountBanner error={parsedError} />}
             {!parsedError && errorMessage && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-2xl border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-300 backdrop-blur-xl">
                 {errorMessage}
               </div>
             )}
@@ -456,7 +449,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 transition hover:from-cyan-400 hover:to-blue-500 hover:shadow-cyan-500/40 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -468,15 +461,15 @@ export default function SignupPage() {
                 </>
               ) : (
                 <>
-                  Create account
+                  Create Account
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </button>
 
-            <p className="text-center text-sm text-slate-500">
+            <p className="text-center text-sm text-slate-400">
               Already have an account?{' '}
-              <Link href="/login" className="font-medium text-slate-800 transition hover:text-slate-900">
+              <Link href="/login" className="font-semibold text-cyan-400 transition hover:text-cyan-300">
                 Log in
               </Link>
             </p>
