@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import BackgroundVideo from "@/components/BackgroundVideo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,10 +26,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#080c14] text-slate-100 relative selection:bg-cyan-500/30 selection:text-cyan-200">
+        <BackgroundVideo variant="ambient" />
+        <div className="relative z-10 flex flex-col flex-1">
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
+
