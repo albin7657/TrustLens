@@ -13,9 +13,12 @@ sub-signals. No single source is treated as the final verdict.
 from typing import Any, Optional
 from urllib.parse import urlparse
 
+import logging
 import httpx
 import trafilatura
 from fastapi import APIRouter, Header, HTTPException, status
+
+logger = logging.getLogger(__name__)
 
 from app.schemas_common import SignalBreakdownItem
 from app.schemas_jobs import (
@@ -94,8 +97,8 @@ async def _run_job_analysis(
                 ),
             )
         )
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Local DistilBERT model prediction failed: %s", exc)
 
     # Milestone P2-6b: fold Modules 2/3/4 into this one paste — cross-check
     # any domain/email mentioned in the posting the same way a standalone

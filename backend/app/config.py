@@ -35,7 +35,7 @@ class Settings:
 
     # Gemini (AI analysis — job fraud detection, communication analysis, etc.)
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
 
     # Tavily (web search — company reputation: reviews + public registration
     # records, since neither Trustpilot nor India's MCA offer a usable free API)
