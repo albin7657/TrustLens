@@ -16,15 +16,15 @@ export default function SignalBreakdown({ signals }: { signals: SignalBreakdownI
   return (
     <div className="space-y-3">
       {signals.map((s) => (
-        <div key={s.name} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div key={s.name} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm font-medium capitalize text-slate-700">{formatName(s.name)}</span>
-            <span className="text-sm font-semibold text-slate-900">{Math.round(s.score)}/100</span>
+            <span className="text-sm font-semibold capitalize text-slate-200">{formatName(s.name)}</span>
+            <span className="text-sm font-bold text-white">{Math.round(s.score)}/100</span>
           </div>
-          <div className="mt-2 h-2 rounded-full bg-slate-200">
+          <div className="mt-2 h-2 rounded-full bg-slate-800">
             <div className={`h-2 rounded-full ${riskColor(s.score)}`} style={{ width: `${Math.min(100, s.score)}%` }} />
           </div>
-          <p className="mt-2 text-xs leading-relaxed text-slate-500">{s.explanation}</p>
+          <p className="mt-2 text-xs leading-relaxed text-slate-400">{s.explanation}</p>
         </div>
       ))}
     </div>

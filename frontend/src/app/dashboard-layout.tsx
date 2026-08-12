@@ -36,11 +36,12 @@ export default function DashboardLayout({
   const showBackToHome = pathname !== '/overview';
 
   return (
-    <div className="relative flex min-h-screen overflow-hidden text-slate-800 bg-[#f5f7fb]">
+    <div className="relative flex min-h-screen overflow-hidden text-slate-100 bg-[#080c14]">
+      {/* Subtle cyber background ambient glows */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-slate-900/5 blur-3xl" />
-        <div className="absolute right-0 top-24 h-80 w-80 rounded-full bg-sky-400/10 blur-3xl" />
-        <div className="absolute bottom-0 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-indigo-400/5 blur-3xl" />
+        <div className="absolute -left-32 top-10 h-96 w-96 rounded-full bg-cyan-500/10 blur-[130px]" />
+        <div className="absolute right-0 top-1/4 h-[500px] w-[500px] rounded-full bg-indigo-600/10 blur-[140px]" />
+        <div className="absolute bottom-10 left-1/3 h-80 w-80 rounded-full bg-blue-600/10 blur-[120px]" />
       </div>
       <Sidebar />
 
@@ -50,16 +51,16 @@ export default function DashboardLayout({
           <button
             type="button"
             aria-label="Close navigation menu"
-            className="absolute inset-0 bg-slate-900/40"
+            className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
             onClick={() => setMobileNavOpen(false)}
           />
-          <div className="relative h-full w-64 border-r border-slate-200 bg-white">
+          <div className="relative h-full w-64 border-r border-slate-800 bg-slate-950">
             <Sidebar mobile />
             <button
               type="button"
               aria-label="Close navigation menu"
               onClick={() => setMobileNavOpen(false)}
-              className="absolute right-3 top-5 rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+              className="absolute right-3 top-5 rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white"
             >
               <X className="h-5 w-5" />
             </button>
@@ -69,19 +70,19 @@ export default function DashboardLayout({
 
       <div className="relative z-10 flex min-h-screen flex-1 flex-col lg:ml-64">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-2xl lg:hidden">
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-800/80 bg-slate-950/80 px-4 py-3 backdrop-blur-2xl lg:hidden">
           <button
             type="button"
             aria-label="Open navigation menu"
             onClick={() => setMobileNavOpen(true)}
-            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+            className="rounded-lg p-2 text-slate-300 hover:bg-slate-800"
           >
             <Menu className="h-5 w-5" />
           </button>
           {showBackToHome && (
             <Link
               href="/overview"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-300 hover:text-cyan-400"
             >
               <ArrowLeft className="h-4 w-4" />
               Home

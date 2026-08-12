@@ -78,10 +78,6 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative z-10 px-6 py-24 lg:px-8 lg:py-32">
         <div className="mx-auto max-w-5xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/60 bg-slate-950/60 px-4 py-2 text-sm font-semibold text-cyan-200 backdrop-blur-md shadow-lg shadow-cyan-900/40 ring-1 ring-cyan-400/20">
-            <Sparkles className="h-4 w-4 text-cyan-300 animate-pulse" />
-            Trusted by modern hiring and compliance teams
-          </div>
 
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl leading-[1.12]">
             Protect your hiring pipeline with{' '}

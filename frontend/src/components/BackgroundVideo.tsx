@@ -7,7 +7,7 @@ interface BackgroundVideoProps {
 }
 
 export default function BackgroundVideo({
-  videoSrc = '/videos/cybersecurity_showcase_video.mp4',
+  videoSrc = '/videos/hero_bg.mp4',
   variant = 'ambient',
   className = '',
 }: BackgroundVideoProps) {

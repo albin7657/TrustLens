@@ -50,34 +50,34 @@ export default function MyScans() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
+    <div className="min-h-screen text-slate-100">
       <div className="mx-auto max-w-6xl">
         <PageHeader
           title="My Scans"
           description="Every analysis run through TrustLens, newest first. Click a row to see the full stored result."
         />
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-xl backdrop-blur-xl">
           {isLoading ? (
-            <p className="p-6 text-sm text-slate-500">Loading…</p>
+            <p className="p-6 text-sm text-slate-400">Loading…</p>
           ) : error ? (
             <div className="space-y-3 p-6">
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-300">{error}</p>
               <button
                 onClick={load}
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+                className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
               >
                 Retry
               </button>
             </div>
           ) : items.length === 0 ? (
-            <p className="p-6 text-sm text-slate-500">
+            <p className="p-6 text-sm text-slate-400">
               No scans yet — run a job, company, recruiter, or website check to see it here.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                <thead className="bg-slate-950/80 text-left text-xs uppercase tracking-wide text-slate-400 border-b border-slate-800">
                   <tr>
                     <th className="px-4 py-3">Type</th>
                     <th className="px-4 py-3">Input</th>
@@ -85,23 +85,23 @@ export default function MyScans() {
                     <th className="px-4 py-3">Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-800/60">
                   {items.map((item) => (
                     <Fragment key={item.id}>
                       <tr
                         onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                        className="cursor-pointer hover:bg-slate-50"
+                        className="cursor-pointer hover:bg-slate-800/40 transition-colors"
                       >
-                        <td className="whitespace-nowrap px-4 py-3">
+                        <td className="whitespace-nowrap px-4 py-3 text-slate-200">
                           <span className="mr-2">{TYPE_ICON[item.scan_type] || '🔍'}</span>
                           {item.scan_type.replace(/_/g, ' ')}
                         </td>
-                        <td className="max-w-xs truncate px-4 py-3 text-slate-700">{item.input_summary}</td>
+                        <td className="max-w-xs truncate px-4 py-3 text-slate-300">{item.input_summary}</td>
                         <td className="whitespace-nowrap px-4 py-3">
                           {item.risk_category ? (
                             <span
                               className={`rounded-full border px-2 py-1 text-xs font-medium ${
-                                CATEGORY_STYLES[item.risk_category] || 'bg-slate-50 text-slate-700 border-slate-200'
+                                CATEGORY_STYLES[item.risk_category] || 'bg-slate-800 text-slate-300 border-slate-700'
                               }`}
                             >
                               {item.risk_category}
@@ -111,16 +111,16 @@ export default function MyScans() {
                             '—'
                           )}
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-slate-500">
+                        <td className="whitespace-nowrap px-4 py-3 text-slate-400">
                           {new Date(item.created_at).toLocaleString()}
                         </td>
                       </tr>
                       {expandedId === item.id ? (
                         <tr>
-                          <td colSpan={4} className="bg-slate-50 px-4 py-4">
+                          <td colSpan={4} className="bg-slate-950/80 px-4 py-4 border-b border-slate-800">
                             <div className="space-y-3">
                               <FeedbackStrip scanId={item.id} />
-                              <pre className="max-h-96 overflow-auto rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700">
+                              <pre className="max-h-96 overflow-auto rounded-lg border border-slate-800 bg-slate-900 p-3 text-xs text-slate-300 font-mono">
                                 {JSON.stringify(item.result_payload, null, 2)}
                               </pre>
                             </div>

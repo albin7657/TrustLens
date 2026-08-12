@@ -41,7 +41,7 @@ export default function RAGAssistant() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
+    <div className="min-h-screen text-slate-100">
       <div className="max-w-4xl mx-auto">
         <PageHeader
           title="Recruitment Knowledge & Threat Intelligence"
@@ -49,20 +49,20 @@ export default function RAGAssistant() {
         />
 
         {/* Chat Interface */}
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-xl backdrop-blur-xl overflow-hidden">
           {/* Chat Messages */}
           <div className="h-[500px] overflow-y-auto p-6 space-y-4">
             {chatHistory.length === 0 && (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">🤖</div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">Ask Anything</h3>
-                <p className="text-slate-500 mb-6">Get AI-powered insights about recruitment fraud and company verification</p>
+                <h3 className="text-xl font-semibold text-white mb-2">Ask Anything</h3>
+                <p className="text-slate-400 mb-6">Get AI-powered insights about recruitment fraud and company verification</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {examples.map((example, index) => (
                     <button
                       key={index}
                       onClick={() => setQuery(example)}
-                      className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                      className="rounded-full border border-slate-800 bg-slate-950/80 px-4 py-2 text-sm text-slate-300 transition-colors hover:border-cyan-500/50 hover:bg-slate-900 hover:text-white"
                     >
                       {example}
                     </button>
@@ -75,16 +75,16 @@ export default function RAGAssistant() {
               <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] rounded-2xl p-4 ${
                   message.role === 'user'
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-800'
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-950/40'
+                    : 'bg-slate-950/80 border border-slate-800 text-slate-200'
                 }`}>
                   <p className="whitespace-pre-wrap">{message.content}</p>
                   {message.sources && (
-                    <div className="mt-4 pt-4 border-t border-slate-200">
-                      <p className="text-xs text-slate-500 mb-2">Sources Used:</p>
+                    <div className="mt-4 pt-4 border-t border-slate-800">
+                      <p className="text-xs text-slate-400 mb-2">Sources Used:</p>
                       <div className="flex flex-wrap gap-2">
                         {message.sources.map((source, i) => (
-                          <span key={i} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-1 text-xs text-emerald-700">
+                          <span key={i} className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2 py-1 text-xs text-emerald-300">
                             ✓ {source}
                           </span>
                         ))}
@@ -97,11 +97,11 @@ export default function RAGAssistant() {
 
             {isThinking && (
               <div className="flex justify-start">
-                <div className="rounded-2xl bg-slate-100 p-4">
+                <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-slate-500 animate-bounce"></div>
-                    <div className="w-2 h-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"></div>
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
@@ -109,7 +109,7 @@ export default function RAGAssistant() {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-slate-200 p-4">
+          <div className="border-t border-slate-800 p-4 bg-slate-950/40">
             <div className="flex gap-4">
               <input
                 type="text"
@@ -117,12 +117,12 @@ export default function RAGAssistant() {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Ask about companies, recruiters, or scam patterns..."
-                className="flex-1 rounded-2xl bg-white border border-slate-300 px-4 py-3 text-slate-800 placeholder-slate-400 focus:border-slate-500 focus:outline-none"
+                className="flex-1 rounded-2xl bg-slate-950/80 border border-slate-800 px-4 py-3 text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
               />
               <button
                 onClick={handleSend}
                 disabled={isThinking || !query.trim()}
-                className="rounded-2xl bg-slate-900 px-6 py-3 text-white font-semibold transition hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-white font-semibold shadow-lg shadow-cyan-950/40 transition hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Send
               </button>
@@ -132,25 +132,25 @@ export default function RAGAssistant() {
 
         {/* Features */}
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl backdrop-blur-xl">
             <div className="text-3xl mb-3">📚</div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Source Citations</h3>
-            <p className="text-sm text-slate-500">Every answer includes verified sources from our database</p>
+            <h3 className="text-lg font-semibold text-white mb-2">Source Citations</h3>
+            <p className="text-sm text-slate-400">Every answer includes verified sources from our database</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl backdrop-blur-xl">
             <div className="text-3xl mb-3">🎯</div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Confidence Score</h3>
-            <p className="text-sm text-slate-500">AI provides confidence levels for each response</p>
+            <h3 className="text-lg font-semibold text-white mb-2">Confidence Score</h3>
+            <p className="text-sm text-slate-400">AI provides confidence levels for each response</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl backdrop-blur-xl">
             <div className="text-3xl mb-3">🔗</div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Related Cases</h3>
-            <p className="text-sm text-slate-500">Links to similar fraud cases and patterns</p>
+            <h3 className="text-lg font-semibold text-white mb-2">Related Cases</h3>
+            <p className="text-sm text-slate-400">Links to similar fraud cases and patterns</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-xl backdrop-blur-xl">
             <div className="text-3xl mb-3">⚠️</div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Fraud Alerts</h3>
-            <p className="text-sm text-slate-500">Real-time warnings about emerging scam tactics</p>
+            <h3 className="text-lg font-semibold text-white mb-2">Fraud Alerts</h3>
+            <p className="text-sm text-slate-400">Real-time warnings about emerging scam tactics</p>
           </div>
         </div>
       </div>

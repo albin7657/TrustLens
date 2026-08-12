@@ -97,28 +97,32 @@ function CallbackHandler() {
   const displayErrorMessage = isEmailMismatch ? error.split('|')[1] : error;
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-slate-800">
-      <div className="flex min-h-screen items-center justify-center px-6">
-        <div className="w-full max-w-md rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm text-center">
+    <main className="min-h-screen bg-[#080c14] text-slate-100 relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute -left-32 top-10 h-96 w-96 rounded-full bg-cyan-500/10 blur-[130px]" />
+        <div className="absolute right-0 top-1/4 h-[500px] w-[500px] rounded-full bg-indigo-600/10 blur-[140px]" />
+      </div>
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
+        <div className="w-full max-w-md rounded-[2rem] border border-slate-800/80 bg-slate-900/70 p-8 shadow-2xl backdrop-blur-xl text-center">
           {error ? (
             <>
-              <div className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full ${isEmailMismatch ? 'bg-amber-50' : 'bg-red-50'}`}>
-                <AlertCircle className={`h-8 w-8 ${isEmailMismatch ? 'text-amber-600' : 'text-red-500'}`} />
+              <div className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full ${isEmailMismatch ? 'bg-amber-950/60 border border-amber-800/60' : 'bg-red-950/60 border border-red-800/60'}`}>
+                <AlertCircle className={`h-8 w-8 ${isEmailMismatch ? 'text-amber-400' : 'text-red-400'}`} />
               </div>
-              <h2 className="text-2xl font-semibold text-slate-900">
+              <h2 className="text-2xl font-bold text-white">
                 {isEmailMismatch ? 'Account Uses Email Sign-In' : 'Authentication Failed'}
               </h2>
-              <p className="mt-4 text-slate-600 leading-relaxed">{displayErrorMessage}</p>
+              <p className="mt-4 text-slate-300 leading-relaxed">{displayErrorMessage}</p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-950/40 transition hover:from-cyan-400 hover:to-blue-500"
                 >
                   Go to Login
                 </Link>
                 <Link
                   href="/signup"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 px-6 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-700 bg-slate-800/60 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-800"
                 >
                   Sign up
                 </Link>
@@ -126,13 +130,13 @@ function CallbackHandler() {
             </>
           ) : (
             <>
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-                <ShieldCheck className="h-8 w-8 animate-pulse text-slate-700" />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500/10 border border-cyan-500/20">
+                <ShieldCheck className="h-8 w-8 animate-pulse text-cyan-400" />
               </div>
-              <h2 className="text-2xl font-semibold text-slate-900">Authenticating</h2>
-              <p className="mt-4 text-slate-600">Completing your sign-in, please wait...</p>
+              <h2 className="text-2xl font-bold text-white">Authenticating</h2>
+              <p className="mt-4 text-slate-300">Completing your sign-in, please wait...</p>
               <div className="mt-6 flex justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-slate-500" />
+                <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
               </div>
             </>
           )}
@@ -146,8 +150,8 @@ export default function AuthCallbackPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-center justify-center bg-[#f5f7fb]">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
+        <main className="flex min-h-screen items-center justify-center bg-[#080c14]">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
         </main>
       }
     >
