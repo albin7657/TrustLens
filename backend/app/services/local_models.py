@@ -56,6 +56,7 @@ def load_email_model():
     return _email_tokenizer, _email_model
 
 
+
 def predict_job_fraud(text: str) -> dict:
     """Run the local DistilBERT job-fraud classifier on raw text.
 
