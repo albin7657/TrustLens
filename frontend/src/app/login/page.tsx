@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ArrowRight, Building2, LockKeyhole, Mail, UserRound, Eye, EyeOff, Sparkles, AlertTriangle, LogIn } from 'lucide-react';
+import { ArrowRight, Building2, LockKeyhole, Mail, UserRound, Eye, EyeOff, AlertTriangle, LogIn } from 'lucide-react';
 import TrustLensLogo from '@/components/TrustLensLogo';
 import BackgroundVideo from '@/components/BackgroundVideo';
 
@@ -204,11 +204,6 @@ export default function LoginPage() {
       {/* Main Form Section */}
       <section className="relative z-10 mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl gap-12 px-6 py-12 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:px-8">
         <div className="max-w-2xl">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-slate-900/80 px-4 py-2 text-sm font-medium text-cyan-300 backdrop-blur-xl shadow-lg shadow-cyan-950/40">
-            <Sparkles className="h-4 w-4 text-cyan-400 animate-pulse" />
-            One secure portal for all access types
-          </div>
-
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
             Welcome back to{' '}
             <span className="bg-gradient-to-r from-cyan-300 via-sky-100 to-blue-300 bg-clip-text text-transparent">
