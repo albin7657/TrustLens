@@ -18,12 +18,12 @@ const TYPE_ICON: Record<string, string> = {
 };
 
 const CATEGORY_STYLES: Record<string, string> = {
-  high: 'bg-red-50 text-red-700 border-red-200',
-  suspicious: 'bg-red-50 text-red-700 border-red-200',
-  medium: 'bg-amber-50 text-amber-700 border-amber-200',
-  unverified: 'bg-amber-50 text-amber-700 border-amber-200',
-  low: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  verified: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  high: 'bg-red-950/70 text-red-300 border-red-800/80',
+  suspicious: 'bg-red-950/70 text-red-300 border-red-800/80',
+  medium: 'bg-amber-950/70 text-amber-300 border-amber-800/80',
+  unverified: 'bg-amber-950/70 text-amber-300 border-amber-800/80',
+  low: 'bg-emerald-950/70 text-emerald-300 border-emerald-800/80',
+  verified: 'bg-emerald-950/70 text-emerald-300 border-emerald-800/80',
 };
 
 export default function MyScans() {
@@ -50,7 +50,7 @@ export default function MyScans() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] p-8 text-slate-800">
+    <div className="min-h-screen text-slate-100">
       <div className="mx-auto max-w-6xl">
         <PageHeader
           title="My Scans"

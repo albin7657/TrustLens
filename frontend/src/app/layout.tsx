@@ -28,8 +28,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
       suppressHydrationWarning
+      style={{ backgroundColor: '#080c14', colorScheme: 'dark' }}
     >
-      <body className="min-h-full flex flex-col bg-[#080c14] text-slate-100 relative selection:bg-cyan-500/30 selection:text-cyan-200">
+      <body
+        className="min-h-full flex flex-col bg-[#080c14] text-slate-100 relative selection:bg-cyan-500/30 selection:text-cyan-200"
+        style={{ backgroundColor: '#080c14' }}
+      >
         <PersistentBackground />
         <div className="relative z-10 flex flex-col flex-1">
           {children}

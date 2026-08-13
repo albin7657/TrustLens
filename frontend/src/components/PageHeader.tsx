@@ -20,13 +20,13 @@ export default function PageHeader({
     <div className="mb-8">
       <Link
         href={backHref}
-        className="mb-4 inline-flex items-center gap-1.5 rounded-lg px-1 py-0.5 text-sm font-medium text-slate-500 transition hover:text-slate-900"
+        className="mb-4 inline-flex items-center gap-1.5 rounded-lg px-1 py-0.5 text-sm font-medium text-slate-500 transition hover:text-cyan-400"
       >
         <ArrowLeft className="h-4 w-4" />
         {backLabel}
       </Link>
-      <h1 className="text-3xl font-bold tracking-tight text-slate-900">{title}</h1>
-      {description && <p className="mt-1.5 text-sm text-slate-500 max-w-3xl">{description}</p>}
+      <h1 className="text-3xl font-bold tracking-tight text-white">{title}</h1>
+      {description && <p className="mt-1.5 text-sm text-slate-400 max-w-3xl">{description}</p>}
     </div>
   );
 }

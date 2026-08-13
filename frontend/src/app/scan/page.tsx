@@ -26,6 +26,13 @@ import { Search, Mail, UserRound, Building2, AlertTriangle, CheckCircle, Upload,
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
+// Dark-theme shared classes
+const CARD = 'rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-xl backdrop-blur-xl';
+const INPUT = 'w-full rounded-xl border border-slate-800 bg-slate-950/80 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20';
+const LABEL = 'block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1';
+const BTN_PRIMARY = 'rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/25 transition hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed';
+const BTN_GHOST = 'rounded-xl bg-slate-800/80 border border-slate-700 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:bg-slate-700 disabled:opacity-50';
+
 function ScanContent() {
   const { activeTab, switchTab } = useTabFromUrl('job');
 
@@ -182,7 +189,7 @@ function ScanContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] p-8 lg:p-12 text-slate-800">
+    <div className="min-h-screen text-slate-100">
       <div className="mx-auto max-w-5xl">
         <PageHeader
           title="Scan Center"
@@ -190,7 +197,7 @@ function ScanContent() {
         />
 
         {/* Navigation Tabs */}
-        <div className="mb-8 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+        <div className="mb-8 flex flex-wrap gap-2 rounded-2xl border border-slate-800/80 bg-slate-900/60 p-1.5 shadow-xl backdrop-blur-xl">
           {[
             { id: 'job', label: 'Job Posting', icon: Search },
             { id: 'message', label: 'Message / Email', icon: Mail },
@@ -204,7 +211,9 @@ function ScanContent() {
                 key={t.id}
                 onClick={() => switchTab(t.id)}
                 className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
-                  active ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                  active
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -217,146 +226,133 @@ function ScanContent() {
         {/* Tab 1: Job Posting */}
         {activeTab === 'job' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="mb-4 flex items-center gap-3">
-                <button
-                  onClick={() => setJobMode('text')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${jobMode === 'text' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}
-                >
-                  Text Paste
-                </button>
-                <button
-                  onClick={() => setJobMode('url')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${jobMode === 'url' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}
-                >
-                  URL Link
-                </button>
-                <button
-                  onClick={() => setJobMode('image')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${jobMode === 'image' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}
-                >
-                  Screenshot OCR
-                </button>
+            <div className={CARD + ' p-6'}>
+              <div className="mb-4 flex items-center gap-2">
+                {(['text', 'url', 'image'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setJobMode(mode)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                      jobMode === mode
+                        ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300'
+                        : 'bg-slate-800/60 border border-slate-700 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {mode === 'text' ? 'Text Paste' : mode === 'url' ? 'URL Link' : 'Screenshot OCR'}
+                  </button>
+                ))}
               </div>
 
               <form onSubmit={handleJobScan} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Company Name (Optional)</label>
+                  <label className={LABEL}>Company Name (Optional)</label>
                   <input
                     type="text"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="e.g. Acme Corp"
-                    className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-slate-500 focus:outline-none"
+                    className={INPUT}
                   />
                 </div>
 
                 {jobMode === 'text' && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Job Description Text</label>
+                    <label className={LABEL}>Job Description Text</label>
                     <textarea
                       rows={6}
                       value={jobText}
                       onChange={(e) => setJobText(e.target.value)}
                       placeholder="Paste full job description, email offer, or advertisement text..."
-                      className="w-full rounded-xl border border-slate-300 p-4 text-sm focus:border-slate-500 focus:outline-none"
+                      className={INPUT + ' p-4'}
                     />
                   </div>
                 )}
 
                 {jobMode === 'url' && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Job Posting URL</label>
+                    <label className={LABEL}>Job Posting URL</label>
                     <input
                       type="url"
                       value={jobUrl}
                       onChange={(e) => setJobUrl(e.target.value)}
                       placeholder="https://example.com/careers/job-123"
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-slate-500 focus:outline-none"
+                      className={INPUT}
                     />
                   </div>
                 )}
 
                 {jobMode === 'image' && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Upload Screenshot</label>
+                    <label className={LABEL}>Upload Screenshot</label>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => setJobImage(e.target.files?.[0] || null)}
-                      className="w-full text-sm text-slate-500 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-slate-700 hover:file:bg-slate-200"
+                      className="w-full text-sm text-slate-400 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-slate-200 hover:file:bg-slate-700"
                     />
                   </div>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={jobLoading}
-                  className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
-                >
+                <button type="submit" disabled={jobLoading} className={BTN_PRIMARY}>
                   {jobLoading ? 'Analyzing...' : 'Scan Job Posting'}
                 </button>
               </form>
             </div>
 
             {jobError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{jobError}</div>
+              <div className="rounded-xl border border-red-800/80 bg-red-950/40 p-4 text-sm text-red-300">{jobError}</div>
             )}
 
             {jobFetchFailed && (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm space-y-4">
-                <div className="flex items-center gap-3 text-amber-900 font-semibold text-base">
-                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+              <div className="rounded-2xl border border-amber-800/60 bg-amber-950/40 p-6 space-y-4">
+                <div className="flex items-center gap-3 text-amber-300 font-semibold text-base">
+                  <AlertTriangle className="h-5 w-5 text-amber-400" />
                   Site Access Restricted ({jobFetchFailed.reason === 'site_blocks_bots' ? 'Known Bot Shield' : 'Page Unreadable'})
                 </div>
-                <p className="text-sm text-amber-800">
+                <p className="text-sm text-amber-200/80">
                   This job board blocks automated scrapers. Please <b>paste the text</b> directly or <b>upload a screenshot</b> above.
                 </p>
-                <div className="rounded-xl bg-white p-4 border border-amber-200 space-y-2">
+                <div className="rounded-xl border border-amber-800/50 bg-slate-900/60 p-4 space-y-2">
                   <p className="text-xs font-bold text-slate-500 uppercase">Domain Security Assessment</p>
-                  <p className="text-sm font-semibold text-slate-800">Domain: {jobFetchFailed.domain_analysis.domain}</p>
-                  <p className="text-sm text-slate-600">Trust Score: {jobFetchFailed.domain_analysis.trust_score} / 100 ({jobFetchFailed.domain_analysis.risk_category})</p>
+                  <p className="text-sm font-semibold text-slate-200">Domain: {jobFetchFailed.domain_analysis.domain}</p>
+                  <p className="text-sm text-slate-400">Trust Score: {jobFetchFailed.domain_analysis.trust_score} / 100 ({jobFetchFailed.domain_analysis.risk_category})</p>
                 </div>
               </div>
             )}
 
             {jobResult && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className={CARD + ' p-6 space-y-6'}>
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
                   <div>
-                    <span className="text-xs font-semibold uppercase text-slate-400">Risk Assessment</span>
-                    <h2 className="text-2xl font-bold text-slate-900">
-                      Score: {jobResult.risk_score} / 100
-                    </h2>
+                    <span className="text-xs font-semibold uppercase text-slate-500">Risk Assessment</span>
+                    <h2 className="text-2xl font-bold text-white">Score: {jobResult.risk_score} / 100</h2>
                   </div>
                   <div className="flex gap-2">
                     {jobResult.verdict_label === 'predatory_internship' && (
-                      <span className="rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-bold text-amber-800">
+                      <span className="rounded-full bg-amber-950/70 border border-amber-800/60 px-3 py-1 text-xs font-bold text-amber-300">
                         ⚠️ Pay-for-Certificate Scheme
                       </span>
                     )}
                     <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
-                      jobResult.risk_category === 'high' ? 'bg-red-100 text-red-700' :
-                      jobResult.risk_category === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                      jobResult.risk_category === 'high' ? 'bg-red-950/70 text-red-300 border border-red-800/60' :
+                      jobResult.risk_category === 'medium' ? 'bg-amber-950/70 text-amber-300 border border-amber-800/60' :
+                      'bg-emerald-950/70 text-emerald-300 border border-emerald-800/60'
                     }`}>
                       {jobResult.risk_category} Risk
                     </span>
                   </div>
                 </div>
 
-                {/* Two models ran independently on this posting — shown side by side so
-                    it's clear the local classifier isn't just decorative, it's a real
-                    contributing signal (see local_model:distilbert in the breakdown below). */}
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="rounded-xl border border-slate-800/80 bg-slate-950/60 p-4">
                     <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
                       <Cpu className="h-4 w-4" />
                       Local AI Model (DistilBERT)
                     </div>
                     {jobResult.local_model ? (
                       <>
-                        <p className="text-lg font-bold text-slate-900">{jobResult.local_model.label}</p>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-lg font-bold text-white">{jobResult.local_model.label}</p>
+                        <p className="text-sm text-slate-400">
                           {jobResult.local_model.confidence}% confidence · {jobResult.local_model.risk_level}
                         </p>
                       </>
@@ -364,15 +360,15 @@ function ScanContent() {
                       <p className="text-sm italic text-slate-500">Unavailable for this scan.</p>
                     )}
                   </div>
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="rounded-xl border border-slate-800/80 bg-slate-950/60 p-4">
                     <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
                       <Sparkles className="h-4 w-4" />
                       Cloud AI (Gemini)
                     </div>
-                    <p className="text-lg font-bold text-slate-900">
+                    <p className="text-lg font-bold text-white">
                       {jobResult.ai_available ? 'Analyzed' : 'Unavailable'}
                     </p>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-sm text-slate-400">
                       {jobResult.ai_available
                         ? `${jobResult.signal_breakdown.filter((s) => s.name.startsWith('gemini:')).length} semantic signals scored`
                         : 'Falling back to rule-based + database signals only'}
@@ -380,7 +376,7 @@ function ScanContent() {
                   </div>
                 </div>
 
-                <p className="text-sm text-slate-700 leading-relaxed">{jobResult.explanation}</p>
+                <p className="text-sm text-slate-300 leading-relaxed">{jobResult.explanation}</p>
                 <SignalBreakdown signals={jobResult.signal_breakdown} />
                 {jobResult.scan_id && <FeedbackStrip scanId={jobResult.scan_id} />}
               </div>
@@ -391,14 +387,14 @@ function ScanContent() {
         {/* Tab 2: Message / Email */}
         {activeTab === 'message' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+            <div className={CARD + ' p-6 space-y-4'}>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Communication Channel</label>
+                  <label className={LABEL}>Communication Channel</label>
                   <select
                     value={commChannel}
                     onChange={(e) => setCommChannel(e.target.value as CommunicationChannel)}
-                    className="rounded-xl border border-slate-300 px-4 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                    className="rounded-xl border border-slate-800 bg-slate-950/80 px-4 py-2 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none"
                   >
                     {CHANNEL_OPTIONS.map((c) => (
                       <option key={c.value} value={c.value}>{c.label}</option>
@@ -407,27 +403,27 @@ function ScanContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Or Upload Screenshot</label>
+                  <label className={LABEL}>Or Upload Screenshot</label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
                       if (e.target.files?.[0]) handleCommOCR(e.target.files[0]);
                     }}
-                    className="text-xs text-slate-500 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-700"
+                    className="text-xs text-slate-400 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-200"
                   />
                 </div>
               </div>
 
               <form onSubmit={handleCommScan} className="space-y-4">
                 <div className="space-y-3">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">Message Thread</label>
+                  <label className={LABEL}>Message Thread</label>
                   {commMessages.map((msg, idx) => (
                     <div key={idx} className="flex gap-3">
                       <select
                         value={msg.sender}
                         onChange={(e) => updateCommRow(idx, 'sender', e.target.value)}
-                        className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold bg-slate-50 text-slate-700"
+                        className="rounded-xl border border-slate-800 bg-slate-950/80 px-3 py-2 text-xs font-semibold text-slate-200 focus:border-cyan-500 focus:outline-none"
                       >
                         <option value="them">Them (Sender)</option>
                         <option value="me">Me (Receiver)</option>
@@ -437,46 +433,44 @@ function ScanContent() {
                         value={msg.text}
                         onChange={(e) => updateCommRow(idx, 'text', e.target.value)}
                         placeholder="e.g. Congratulations! Pay registration fee to start..."
-                        className="flex-1 rounded-xl border border-slate-300 px-4 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                        className="flex-1 rounded-xl border border-slate-800 bg-slate-950/80 px-4 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
                       />
                     </div>
                   ))}
                   <button
                     type="button"
                     onClick={addCommRow}
-                    className="text-xs font-semibold text-indigo-600 hover:underline"
+                    className="text-xs font-semibold text-cyan-400 hover:underline"
                   >
                     + Add Message Row
                   </button>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={commLoading}
-                  className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
-                >
+                <button type="submit" disabled={commLoading} className={BTN_PRIMARY}>
                   {commLoading ? 'Analyzing Thread...' : 'Analyze Communication'}
                 </button>
               </form>
             </div>
 
             {commError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{commError}</div>
+              <div className="rounded-xl border border-red-800/80 bg-red-950/40 p-4 text-sm text-red-300">{commError}</div>
             )}
 
             {commResult && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className={CARD + ' p-6 space-y-6'}>
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
                   <div>
-                    <span className="text-xs font-semibold uppercase text-slate-400">Communication Analysis</span>
-                    <h2 className="text-2xl font-bold text-slate-900">Score: {commResult.risk_score} / 100</h2>
+                    <span className="text-xs font-semibold uppercase text-slate-500">Communication Analysis</span>
+                    <h2 className="text-2xl font-bold text-white">Score: {commResult.risk_score} / 100</h2>
                   </div>
                   <div className="flex gap-2">
-                    <span className="rounded-full bg-indigo-100 text-indigo-800 px-3 py-1 text-xs font-bold uppercase">
+                    <span className="rounded-full bg-indigo-950/70 border border-indigo-800/60 text-indigo-300 px-3 py-1 text-xs font-bold uppercase">
                       Lure: {commResult.lure_type.replace(/_/g, ' ')}
                     </span>
                     <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
-                      commResult.risk_category === 'high' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
+                      commResult.risk_category === 'high'
+                        ? 'bg-red-950/70 text-red-300 border border-red-800/60'
+                        : 'bg-emerald-950/70 text-emerald-300 border border-emerald-800/60'
                     }`}>
                       {commResult.risk_category} Risk
                     </span>
@@ -484,7 +478,7 @@ function ScanContent() {
                 </div>
 
                 {/* Stage progression timeline */}
-                <div className="rounded-xl bg-slate-50 p-4 border border-slate-200">
+                <div className="rounded-xl border border-slate-800/80 bg-slate-950/60 p-4">
                   <p className="text-xs font-bold text-slate-500 uppercase mb-3">Detected Scam Stage Timeline</p>
                   <div className="flex flex-wrap gap-2">
                     {SCAM_STAGES.map((st) => {
@@ -493,7 +487,7 @@ function ScanContent() {
                         <div
                           key={st.value}
                           className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                            isCurrent ? 'bg-red-600 text-white shadow-sm ring-2 ring-red-300' : 'bg-slate-200 text-slate-600'
+                            isCurrent ? 'bg-red-600 text-white shadow-sm ring-2 ring-red-500/40' : 'bg-slate-800 text-slate-500'
                           }`}
                         >
                           {st.label}
@@ -504,13 +498,13 @@ function ScanContent() {
                 </div>
 
                 {commResult.extracted_links.length > 0 && (
-                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <div className="rounded-xl border border-slate-800/80 bg-slate-950/60 p-4">
                     <p className="text-xs font-bold text-slate-500 uppercase mb-2">Extracted Domain / Link Checks</p>
                     <div className="space-y-2">
                       {commResult.extracted_links.map((link, i) => (
-                        <div key={i} className="flex items-center justify-between text-xs font-mono bg-slate-50 p-2 rounded-lg">
-                          <span>{link.domain}</span>
-                          <span className={link.internal_db_hit ? 'text-red-600 font-bold' : 'text-emerald-600'}>
+                        <div key={i} className="flex items-center justify-between text-xs font-mono bg-slate-800/60 p-2 rounded-lg border border-slate-700/60">
+                          <span className="text-slate-300">{link.domain}</span>
+                          <span className={link.internal_db_hit ? 'text-red-400 font-bold' : 'text-emerald-400'}>
                             {link.internal_db_hit ? `🚩 Hit: ${link.internal_db_hit}` : 'Clean'}
                           </span>
                         </div>
@@ -519,7 +513,7 @@ function ScanContent() {
                   </div>
                 )}
 
-                <p className="text-sm text-slate-700 leading-relaxed">{commResult.explanation}</p>
+                <p className="text-sm text-slate-300 leading-relaxed">{commResult.explanation}</p>
                 <SignalBreakdown signals={commResult.signal_breakdown} />
                 {commResult.scan_id && <FeedbackStrip scanId={commResult.scan_id} />}
               </div>
@@ -530,67 +524,64 @@ function ScanContent() {
         {/* Tab 3: Recruiter */}
         {activeTab === 'recruiter' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className={CARD + ' p-6'}>
               <form onSubmit={handleRecScan} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Recruiter Email *</label>
+                    <label className={LABEL}>Recruiter Email *</label>
                     <input
                       type="email"
                       required
                       value={recEmail}
                       onChange={(e) => setRecEmail(e.target.value)}
                       placeholder="recruiter@company.com"
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-slate-500 focus:outline-none"
+                      className={INPUT}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Recruiter Name (Optional)</label>
+                    <label className={LABEL}>Recruiter Name (Optional)</label>
                     <input
                       type="text"
                       value={recName}
                       onChange={(e) => setRecName(e.target.value)}
                       placeholder="John Doe"
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-slate-500 focus:outline-none"
+                      className={INPUT}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Claimed Company Domain (Optional)</label>
+                  <label className={LABEL}>Claimed Company Domain (Optional)</label>
                   <input
                     type="text"
                     value={recCompanyDomain}
                     onChange={(e) => setRecCompanyDomain(e.target.value)}
                     placeholder="company.com"
-                    className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-slate-500 focus:outline-none"
+                    className={INPUT}
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={recLoading}
-                  className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
-                >
+                <button type="submit" disabled={recLoading} className={BTN_PRIMARY}>
                   {recLoading ? 'Verifying...' : 'Verify Recruiter'}
                 </button>
               </form>
             </div>
 
             {recError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{recError}</div>
+              <div className="rounded-xl border border-red-800/80 bg-red-950/40 p-4 text-sm text-red-300">{recError}</div>
             )}
 
             {recResult && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className={CARD + ' p-6 space-y-6'}>
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
                   <div>
-                    <span className="text-xs font-semibold uppercase text-slate-400">Recruiter Verification</span>
-                    <h2 className="text-2xl font-bold text-slate-900">Trust Rating: {recResult.trust_rating} / 100</h2>
+                    <span className="text-xs font-semibold uppercase text-slate-500">Recruiter Verification</span>
+                    <h2 className="text-2xl font-bold text-white">Trust Rating: {recResult.trust_rating} / 100</h2>
                   </div>
                   <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
-                    recResult.status === 'verified' ? 'bg-emerald-100 text-emerald-700' :
-                    recResult.status === 'suspicious' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                    recResult.status === 'verified' ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-800/60' :
+                    recResult.status === 'suspicious' ? 'bg-red-950/70 text-red-300 border border-red-800/60' :
+                    'bg-amber-950/70 text-amber-300 border border-amber-800/60'
                   }`}>
                     {recResult.status}
                   </span>
@@ -606,64 +597,61 @@ function ScanContent() {
         {/* Tab 4: Company / Website */}
         {activeTab === 'company' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className={CARD + ' p-6'}>
               <form onSubmit={handleCompScan} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Domain Name *</label>
+                    <label className={LABEL}>Domain Name *</label>
                     <input
                       type="text"
                       required
                       value={compDomain}
                       onChange={(e) => setCompDomain(e.target.value)}
                       placeholder="example.com"
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-slate-500 focus:outline-none"
+                      className={INPUT}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">Company / Site Name (Optional)</label>
+                    <label className={LABEL}>Company / Site Name (Optional)</label>
                     <input
                       type="text"
                       value={compName}
                       onChange={(e) => setCompName(e.target.value)}
                       placeholder="Example Inc"
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-slate-500 focus:outline-none"
+                      className={INPUT}
                     />
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={compLoading}
-                  className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
-                >
+                <button type="submit" disabled={compLoading} className={BTN_PRIMARY}>
                   {compLoading ? 'Verifying...' : 'Verify Entity'}
                 </button>
               </form>
             </div>
 
             {compError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{compError}</div>
+              <div className="rounded-xl border border-red-800/80 bg-red-950/40 p-4 text-sm text-red-300">{compError}</div>
             )}
 
             {compResult && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className={CARD + ' p-6 space-y-6'}>
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
                   <div>
-                    <span className="text-xs font-semibold uppercase text-slate-400">Entity Trust Score</span>
-                    <h2 className="text-2xl font-bold text-slate-900">Score: {compResult.trust_score} / 100</h2>
+                    <span className="text-xs font-semibold uppercase text-slate-500">Entity Trust Score</span>
+                    <h2 className="text-2xl font-bold text-white">Score: {compResult.trust_score} / 100</h2>
                   </div>
                   <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
-                    compResult.status === 'predatory' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                    compResult.status === 'verified' ? 'bg-emerald-100 text-emerald-700' :
-                    compResult.status === 'suspicious' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                    compResult.status === 'predatory' ? 'bg-amber-950/70 text-amber-300 border border-amber-800/60' :
+                    compResult.status === 'verified' ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-800/60' :
+                    compResult.status === 'suspicious' ? 'bg-red-950/70 text-red-300 border border-red-800/60' :
+                    'bg-amber-950/70 text-amber-300 border border-amber-800/60'
                   }`}>
                     {compResult.status === 'predatory' ? '⚠️ Predatory Certificate Mill' : compResult.status}
                   </span>
                 </div>
 
                 {compResult.status === 'predatory' && (
-                  <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 font-medium">
+                  <div className="rounded-xl border border-amber-800/60 bg-amber-950/40 p-4 text-sm text-amber-200 font-medium">
                     ⚠️ <b>Community Warning:</b> This company is registered as a pay-for-certificate provider. Community reports indicate participants are charged fees for certificates with minimal educational value.
                   </div>
                 )}
