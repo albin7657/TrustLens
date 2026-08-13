@@ -20,6 +20,7 @@ from app.graph import router as graph_router
 from app.stats import router as stats_router
 from app.reporting_assistant import router as reporting_router
 from app.admin import router as admin_router
+from app.rag import router as rag_router
 
 app = FastAPI(
     title="TrustLens API",
@@ -56,6 +57,7 @@ app.include_router(graph_router)
 app.include_router(stats_router)
 app.include_router(reporting_router)
 app.include_router(admin_router)
+app.include_router(rag_router)
 
 
 

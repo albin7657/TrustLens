@@ -132,6 +132,25 @@ export function checkSimilarity(text: string) {
   return postJSON<SimilarityCheckResult>('/similarity/check', { text });
 }
 
+// ── RAG Chat Assistant ───────────────────────────────────────────────────────
+
+export interface RagSourceItem {
+  label: string;
+  type: string;
+  similarity?: number | null;
+}
+
+export interface RagChatResult {
+  answer: string;
+  confidence: number;
+  sources: string[];
+  source_details: RagSourceItem[];
+}
+
+export function ragChat(message: string) {
+  return postJSON<RagChatResult>('/rag/chat', { message });
+}
+
 // ── Modules 3 & 4: Company / Website Trust ─────────────────────────────────
 
 export interface CompanyVerifyResult {
