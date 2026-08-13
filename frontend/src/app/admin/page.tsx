@@ -18,7 +18,7 @@ function cls(...args: (string | undefined | false | null)[]) {
 
 function Chip({ text, cls: extraCls }: { text: string; cls?: string }) {
   return (
-    <span className={cls('rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider', extraCls ?? 'bg-slate-800 text-slate-300')}>
+    <span className={cls('rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider', extraCls ?? 'bg-slate-100 text-slate-700')}>
       {text}
     </span>
   );
@@ -26,10 +26,10 @@ function Chip({ text, cls: extraCls }: { text: string; cls?: string }) {
 
 function StatCard({ label, value, note, color }: { label: string; value: string | number; note?: string; color?: string }) {
   return (
-    <div className={cls('rounded-2xl border p-5 shadow-xl backdrop-blur-xl transition-all hover:border-cyan-500/40', color ?? 'border-slate-800/80 bg-slate-900/60')}>
-      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{label}</p>
-      <p className="mt-1.5 text-3xl font-extrabold text-white">{value}</p>
-      {note && <p className="mt-1 text-xs text-slate-400">{note}</p>}
+    <div className={cls('rounded-2xl border p-5 shadow-sm transition-all hover:shadow-md', color ?? 'border-slate-200 bg-white')}>
+      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</p>
+      <p className="mt-1.5 text-3xl font-extrabold text-slate-900">{value}</p>
+      {note && <p className="mt-1 text-xs text-slate-500">{note}</p>}
     </div>
   );
 }

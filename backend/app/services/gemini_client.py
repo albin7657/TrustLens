@@ -591,3 +591,156 @@ def analyze_company_reputation(
     summary = str(data.get("summary", "")).strip()
     return signals, summary
 
+
+# ── RAG chat assistant ───────────────────────────────────────────────────────
+_RAG_ANSWER_PROMPT = """{system_prompt}
+
+Answer the user's question using ONLY the retrieved context below. If the context \
+doesn't contain enough information to answer confidently, say so clearly and provide \
+general, practical safety advice about recruitment and internship scams.
+
+Do NOT invent company names, report IDs, fraud cases, ratings, or registration numbers \
+that aren't explicitly present in the context.
+
+User question:
+\"\"\"
+{question}
+\"\"\"
+
+Semantic similarity matches (confirmed fraud reports and analyzed job postings):
+{vector_block}
+
+Trust repository records (companies, recruiters, scam websites, community reports):
+{repo_block}
+
+Respond with ONLY a JSON object of this exact shape, no markdown fences:
+{{
+  "answer": "<clear, helpful 2-5 paragraph answer written for a job seeker>",
+  "confidence": <0-100 int reflecting how well the context supports your answer>,
+  "sources": ["<short human-readable source label>", "..."]
+}}
+"""
+
+
+def _format_vector_block(matches: list[dict]) -> str:
+    if not matches:
+        return "(no similar fraud reports or job postings found)"
+    return "\n".join(
+        f"- [{m['source_table']}] category={m.get('category') or 'unknown'} "
+        f"similarity={m['similarity']:.2f}: {m['excerpt']}"
+        for m in matches
+    )
+
+
+def _format_repo_block(records: list[dict]) -> str:
+    if not records:
+        return "(no matching companies, recruiters, or reports found)"
+    lines = []
+    for r in records:
+        detail = f" detail={r['detail']}" if r.get("detail") else ""
+        lines.append(
+            f"- [{r['type']}] {r['label']} status={r.get('status') or 'unknown'}{detail}"
+        )
+    return "\n".join(lines)
+
+
+def answer_rag_question(
+    question: str,
+    matches: list[dict],
+    repo_records: list[dict],
+    *,
+    system_prompt: str | None = None,
+) -> dict:
+    """Generate a grounded RAG answer from retrieved vector + repository context.
+
+    Returns {"answer": str, "confidence": int, "sources": list[str]}.
+    Raises GeminiUnavailableError on API failure.
+    """
+    _ensure_configured()
+
+    prompt = _RAG_ANSWER_PROMPT.format(
+        system_prompt=system_prompt
+        or "You are TrustLens AI, a specialized assistant for recruitment fraud detection.",
+        question=question[:2000],
+        vector_block=_format_vector_block(matches),
+        repo_block=_format_repo_block(repo_records),
+    )
+
+    try:
+        model = genai.GenerativeModel(settings.GEMINI_MODEL)
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.GenerationConfig(
+                response_mime_type="application/json",
+                temperature=0.3,
+            ),
+        )
+        data = json.loads(response.text)
+    except Exception as exc:
+        logger.warning("Gemini RAG answer failed: %s", exc)
+        raise GeminiUnavailableError(str(exc)) from exc
+
+    answer = str(data.get("answer", "")).strip()
+    if not answer:
+        raise GeminiUnavailableError("Gemini returned an empty RAG answer.")
+
+    try:
+        confidence = int(data.get("confidence", 50))
+    except (TypeError, ValueError):
+        confidence = 50
+    confidence = max(0, min(100, confidence))
+
+    sources = data.get("sources")
+    if not isinstance(sources, list):
+        sources = []
+    sources = [str(s).strip() for s in sources if str(s).strip()]
+
+    return {"answer": answer, "confidence": confidence, "sources": sources}
+
+
+def fallback_rag_answer(
+    question: str,
+    matches: list[dict],
+    repo_records: list[dict],
+) -> dict:
+    """Template response when Gemini is unavailable — still grounded in retrieval."""
+    parts: list[str] = []
+    sources: list[str] = []
+
+    if repo_records:
+        parts.append("Trust repository matches:")
+        for r in repo_records[:5]:
+            line = f"- {r['label']} ({r['type']}, status: {r.get('status') or 'unknown'})"
+            parts.append(line)
+            sources.append(f"{r['type'].replace('_', ' ').title()}: {r['label']}")
+
+    if matches:
+        parts.append(
+            f"\nFound {len(matches)} semantically similar case(s) in our records "
+            f"(top match: {round(matches[0]['similarity'] * 100)}% similar)."
+        )
+        for m in matches[:3]:
+            sources.append(
+                f"{m['source_table'].replace('_', ' ').title()} "
+                f"({round(m['similarity'] * 100)}% match)"
+            )
+
+    if not parts:
+        answer = (
+            "I couldn't find specific records in TrustLens related to your question. "
+            "As a general rule: never pay upfront fees for a job or internship, verify "
+            "company domains and recruiter emails independently, and be cautious of "
+            "unsolicited offers with unusually high pay or urgent deadlines."
+        )
+        confidence = 20
+    else:
+        answer = (
+            f"AI narration is temporarily unavailable, but here's what our database shows "
+            f"for your question about \"{question[:120]}\":\n\n"
+            + "\n".join(parts)
+            + "\n\nCross-check these findings with official company registries before proceeding."
+        )
+        confidence = 55 if matches else 40
+
+    return {"answer": answer, "confidence": confidence, "sources": sources}
+
