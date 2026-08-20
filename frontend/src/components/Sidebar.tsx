@@ -14,6 +14,7 @@ const MENU_ITEMS = [
   { icon: "🏠", label: "Home", href: "/overview" },
   { icon: "🔎", label: "Scan Center", href: "/scan" },
   { icon: "🧠", label: "Intelligence", href: "/intelligence" },
+  { icon: "🔗", label: "Trust Graph", href: "/trust-graph" },
   { icon: "🤖", label: "RAG Assistant", href: "/rag-assistant" },
   { icon: "🚨", label: "Reports", href: "/reports" },
 ];
