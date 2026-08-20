@@ -13,7 +13,9 @@ import {
   GraphEntityType,
 } from '@/lib/api';
 import FeedbackStrip from '@/components/FeedbackStrip';
-import { Search, Brain, GitFork, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
+import TrustGraph3D from '@/components/TrustGraph3D';
+import { resolveGraphEntity } from '@/lib/graphViz';
+import { Search, Brain, GitFork } from 'lucide-react';
 
 // Dark-theme shared classes
 const CARD = 'rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-xl backdrop-blur-xl';
@@ -33,6 +35,7 @@ function IntelligenceContent() {
   // Expanded graph connections state
   const [expandedEntity, setExpandedEntity] = useState<string | null>(null);
   const [graphData, setGraphData] = useState<GraphResult | null>(null);
+  const [graphFocus, setGraphFocus] = useState<{ entityType: GraphEntityType; entityId: string } | null>(null);
   const [graphLoading, setGraphLoading] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -57,13 +60,12 @@ function IntelligenceContent() {
     }
     setExpandedEntity(key);
     setGraphLoading(true);
+    setGraphData(null);
+    setGraphFocus(null);
     try {
-      let entityType: GraphEntityType = 'domain';
-      if (item.type === 'company') entityType = 'company';
-      else if (item.type === 'recruiter') entityType = 'recruiter';
-      else if (item.type === 'fraud_report') entityType = 'report';
-
-      const data = await getGraph(entityType, item.id, 1);
+      const { entityType, entityId } = resolveGraphEntity(item);
+      setGraphFocus({ entityType, entityId });
+      const data = await getGraph(entityType, entityId, 2);
       setGraphData(data);
     } catch {
       setGraphData(null);
@@ -188,22 +190,43 @@ function IntelligenceContent() {
                       </button>
 
                       {isExpanded && (
-                        <div className="mt-3 rounded-xl border border-slate-800/80 bg-slate-950/60 p-4 text-xs space-y-2">
-                          <p className="font-bold text-slate-500 uppercase">Trust Graph Connections (Milestone P2-7)</p>
+                        <div className="mt-3 space-y-4">
+                          <p className="text-xs font-bold uppercase text-slate-500">
+                            Trust Graph — 3D View
+                          </p>
                           {graphLoading ? (
-                            <p className="text-slate-600">Loading graph edges...</p>
-                          ) : !graphData || graphData.edges.length === 0 ? (
-                            <p className="text-slate-600">No direct graph connections found.</p>
+                            <p className="text-slate-600">Loading graph…</p>
+                          ) : !graphData || graphData.nodes.length === 0 ? (
+                            <p className="text-slate-600">No graph connections found.</p>
                           ) : (
-                            <div className="space-y-1.5">
-                              {graphData.edges.map((edge, idx) => (
-                                <div key={idx} className="flex items-center gap-2 bg-slate-900/60 border border-slate-800/60 p-2 rounded-lg">
-                                  <span className="font-semibold text-slate-300">{edge.source.id}</span>
-                                  <span className="text-cyan-500 font-mono">-[{edge.relationship}]-&gt;</span>
-                                  <span className="font-semibold text-slate-300">{edge.target.id}</span>
-                                </div>
-                              ))}
-                            </div>
+                            <>
+                              <TrustGraph3D
+                                data={graphData}
+                                focusType={graphFocus?.entityType}
+                                focusId={graphFocus?.entityId}
+                              />
+                              {graphData.edges.length > 0 && (
+                                <details className="rounded-xl border border-slate-800/80 bg-slate-950/60 p-3">
+                                  <summary className="cursor-pointer text-xs font-semibold text-slate-400">
+                                    View connection list ({graphData.edges.length})
+                                  </summary>
+                                  <div className="mt-3 space-y-1.5">
+                                    {graphData.edges.map((edge, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-800/60 bg-slate-900/60 p-2"
+                                      >
+                                        <span className="font-semibold text-slate-300">{edge.source.id}</span>
+                                        <span className="font-mono text-cyan-500">
+                                          -[{edge.relationship}]-&gt;
+                                        </span>
+                                        <span className="font-semibold text-slate-300">{edge.target.id}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </details>
+                              )}
+                            </>
                           )}
                         </div>
                       )}

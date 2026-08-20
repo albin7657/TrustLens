@@ -240,6 +240,14 @@ export function getGraph(entityType: GraphEntityType, entityId: string, depth: 1
   );
 }
 
+export function getGraphOverview(params?: { limit?: number; flaggedOnly?: boolean }) {
+  const q = new URLSearchParams();
+  if (params?.limit) q.set('limit', String(params.limit));
+  if (params?.flaggedOnly) q.set('flagged_only', 'true');
+  const qs = q.toString();
+  return getJSON<GraphResult>(`/graph/overview${qs ? `?${qs}` : ''}`);
+}
+
 // ── Module 8: Community Reporting ──────────────────────────────────────────
 
 export type ReportType =
