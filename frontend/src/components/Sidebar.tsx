@@ -3,24 +3,37 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { LogOut, ChevronDown, Shield } from "lucide-react";
+import {
+  LogOut,
+  ChevronDown,
+  Shield,
+  LayoutDashboard,
+  Search,
+  Brain,
+  Network,
+  Bot,
+  FileWarning,
+  ArrowRightLeft,
+} from "lucide-react";
 import TrustLensLogo from "@/components/TrustLensLogo";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
-// ── 5-item consolidated nav (P2-10) ──────────────────────────────────────────
-const MENU_ITEMS = [
-  { icon: "🏠", label: "Home", href: "/overview" },
-  { icon: "🔎", label: "Scan Center", href: "/scan" },
-  { icon: "🧠", label: "Intelligence", href: "/intelligence" },
-  { icon: "🔗", label: "Trust Graph", href: "/trust-graph" },
-  { icon: "🤖", label: "RAG Assistant", href: "/rag-assistant" },
-  { icon: "🚨", label: "Reports", href: "/reports" },
+// ── Standard User Navigation (Professional Lucide Icons) ──────────────────────
+const USER_MENU_ITEMS = [
+  { icon: LayoutDashboard, label: "Home", href: "/overview" },
+  { icon: Search, label: "Scan Center", href: "/scan" },
+  { icon: Brain, label: "Intelligence", href: "/intelligence" },
+  { icon: Network, label: "Trust Graph", href: "/trust-graph" },
+  { icon: Bot, label: "RAG Assistant", href: "/rag-assistant" },
+  { icon: FileWarning, label: "Reports", href: "/reports" },
 ];
 
-const ADMIN_ITEM = { icon: "⚙️", label: "Admin", href: "/admin" };
-
+// ── Admin Navigation (Clean, single entry to Admin Console) ───────────────────
+const ADMIN_MENU_ITEMS = [
+  { icon: Shield, label: "Admin Console", href: "/admin" },
+];
 
 interface UserData {
   id: string;
@@ -41,7 +54,10 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const resolveRole = useCallback(async () => {
     try {
       const cached = localStorage.getItem("user_role");
-      if (cached) { setRole(cached); return; }
+      if (cached) {
+        setRole(cached);
+        return;
+      }
       const token = localStorage.getItem("access_token");
       if (!token) return;
       const res = await fetch(`${BACKEND_URL}/auth/me`, {
@@ -53,14 +69,18 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
         setRole(r);
         localStorage.setItem("user_role", r);
       }
-    } catch { /* best-effort */ }
+    } catch {
+      /* best-effort */
+    }
   }, []);
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem("user");
       if (stored) setUser(JSON.parse(stored));
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     resolveRole();
   }, [resolveRole]);
 
@@ -89,36 +109,67 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const displayEmail = user?.email || "Not signed in";
   const initials = displayName.slice(0, 2).toUpperCase();
   const isAdmin = role === "admin";
+  const isOnAdminPage = pathname.startsWith("/admin");
 
-  const allItems = isAdmin ? [...MENU_ITEMS, ADMIN_ITEM] : MENU_ITEMS;
+  // Determine active navigation menu: Admin menu ONLY when actively on /admin
+  const menuItems = isAdmin && isOnAdminPage
+    ? ADMIN_MENU_ITEMS
+    : USER_MENU_ITEMS;
 
   return (
     <aside
-      className={`${mobile ? 'relative' : 'fixed left-0 top-0'} z-40 h-screen w-64 border-r border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl ${mobile ? 'block' : 'hidden lg:block'}`}
+      className={`${
+        mobile ? "relative" : "fixed left-0 top-0"
+      } z-40 h-screen w-64 border-r border-slate-800/80 bg-slate-950/95 backdrop-blur-2xl ${
+        mobile ? "block" : "hidden lg:block"
+      }`}
     >
       <div className="flex h-full flex-col">
         {/* Logo */}
         <div className="border-b border-slate-800/80 p-5">
-          <Link href="/overview" className="group">
+          <Link href="/overview" className="group block">
             <TrustLensLogo size="sm" />
           </Link>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto p-3">
+        {/* Section Header */}
+        <div className="px-4 pt-4 pb-1 flex items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            {isOnAdminPage ? "Admin Workspace" : "Main Navigation"}
+          </span>
+          {isAdmin && (
+            <span className="rounded-md bg-cyan-500/10 border border-cyan-500/20 px-1.5 py-0.5 text-[9px] font-semibold text-cyan-400">
+              ADMIN
+            </span>
+          )}
+        </div>
+
+        {/* Nav Items */}
+        <nav className="flex-1 overflow-y-auto px-3 py-2">
           <ul className="space-y-1">
-            {allItems.map((item) => {
+            {menuItems.map((item) => {
+              const Icon = item.icon;
               const isActive =
-                pathname === item.href ||
-                pathname.startsWith(`${item.href}/`) ||
-                (item.href === '/scan' &&
-                  ['/job-scanner', '/communication-analyzer', '/recruiter-verification', '/company-verification'].includes(
-                    pathname,
-                  )) ||
-                (item.href === '/intelligence' && pathname === '/trust-repository') ||
-                (item.href === '/reports' &&
-                  ['/community-reports', '/reporting-assistant'].includes(pathname));
-              const isAdminItem = item.href === "/admin";
+                item.href === "/admin"
+                  ? pathname === "/admin"
+                  : pathname === item.href ||
+                    (item.href !== "/overview" &&
+                      pathname.startsWith(`${item.href}/`)) ||
+                    (item.href === "/scan" &&
+                      [
+                        "/job-scanner",
+                        "/communication-analyzer",
+                        "/recruiter-verification",
+                        "/company-verification",
+                      ].includes(pathname)) ||
+                    (item.href === "/intelligence" &&
+                      pathname === "/trust-repository") ||
+                    (item.href === "/reports" &&
+                      [
+                        "/community-reports",
+                        "/reporting-assistant",
+                      ].includes(pathname));
+
               return (
                 <li key={item.href}>
                   <Link
@@ -129,43 +180,63 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
                         : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100"
                     }`}
                   >
-                    <span className="text-base">{item.icon}</span>
-                    <span>{item.label}</span>
-                    {isAdminItem && (
-                      <Shield className="ml-auto h-3 w-3 opacity-60 text-slate-500" />
-                    )}
+                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-cyan-400" : "text-slate-400"}`} />
+                    <span className="truncate">{item.label}</span>
                   </Link>
                 </li>
               );
             })}
           </ul>
+
+          {/* Quick link for Admins to switch between Admin Console and User Scanner View */}
+          {isAdmin && (
+            <div className="mt-4 pt-3 border-t border-slate-800/60">
+              <Link
+                href={isOnAdminPage ? "/overview" : "/admin"}
+                className="flex items-center gap-2.5 rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs font-medium text-slate-400 hover:text-cyan-300 hover:border-cyan-500/30 transition-colors"
+              >
+                <ArrowRightLeft className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+                <span className="truncate">
+                  {isOnAdminPage ? "Switch to User Portal" : "Open Admin Console"}
+                </span>
+              </Link>
+            </div>
+          )}
         </nav>
 
-        {/* User menu */}
+        {/* User Profile Bar */}
         <div className="border-t border-slate-800/80 p-3">
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex w-full items-center gap-3 rounded-xl bg-slate-900/60 px-3.5 py-3 transition hover:bg-slate-800/80 border border-slate-800/60"
+              className="flex w-full items-center gap-3 rounded-xl bg-slate-900/60 px-3.5 py-2.5 transition hover:bg-slate-800/80 border border-slate-800/60"
             >
-              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-sm font-bold text-white shadow-lg shadow-cyan-900/40">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-xs font-bold text-white shadow-lg shadow-cyan-900/40">
                 {initials}
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="truncate text-sm font-semibold text-slate-100">{displayName}</p>
-                <p className="truncate text-xs text-slate-500">{displayEmail}</p>
+                <p className="truncate text-sm font-semibold text-slate-100">
+                  {displayName}
+                </p>
+                <p className="truncate text-xs text-slate-500 font-mono">
+                  {displayEmail}
+                </p>
               </div>
               <ChevronDown
-                className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${showUserMenu ? "rotate-180" : ""}`}
+                className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${
+                  showUserMenu ? "rotate-180" : ""
+                }`}
               />
             </button>
 
             {showUserMenu && (
               <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-xl border border-slate-800/80 bg-slate-950/95 shadow-2xl shadow-black/40 backdrop-blur-xl">
                 {isAdmin && (
-                  <div className="flex items-center gap-2 border-b border-slate-800/80 px-4 py-2">
-                    <Shield className="h-3 w-3 text-cyan-400" />
-                    <span className="text-xs font-medium text-cyan-400">Admin</span>
+                  <div className="flex items-center gap-2 border-b border-slate-800/80 px-4 py-2 bg-cyan-950/20">
+                    <Shield className="h-3.5 w-3.5 text-cyan-400" />
+                    <span className="text-xs font-medium text-cyan-400">
+                      System Administrator
+                    </span>
                   </div>
                 )}
                 <button

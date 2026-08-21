@@ -179,30 +179,29 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab Bar */}
-        <div className="flex overflow-x-auto gap-2 border-b border-slate-800/80 pb-1">
+        {/* Tab Bar — hidden from UI, all sections rendered below */}
+        <div className="hidden">
           {TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cls(
-                'whitespace-nowrap rounded-xl px-5 py-2.5 text-sm font-semibold transition-all',
-                activeTab === tab
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-400 hover:bg-slate-200/60 hover:text-white',
-              )}
-            >
-              {tab}
-            </button>
+            <button key={tab} onClick={() => setActiveTab(tab)}>{tab}</button>
           ))}
         </div>
 
-        {/* Main Tab Content */}
-        {activeTab === 'Users Management' && <UsersManagementTab showToast={showToast} />}
-        {activeTab === 'Platform Insights' && <PlatformInsightsTab />}
-        {activeTab === 'Model Controls' && <ModelControlsTab showToast={showToast} />}
-        {activeTab === 'Review Queue' && <ReviewQueueTab showToast={showToast} />}
-        {activeTab === 'Data Health' && statsData && <DataHealthTab data={statsData} />}
+        {/* All Sections — scrollable single page */}
+        <div className="space-y-10">
+          <UsersManagementTab showToast={showToast} />
+          <div className="border-t border-slate-800/40 pt-2" />
+          <PlatformInsightsTab />
+          <div className="border-t border-slate-800/40 pt-2" />
+          <ModelControlsTab showToast={showToast} />
+          <div className="border-t border-slate-800/40 pt-2" />
+          <ReviewQueueTab showToast={showToast} />
+          {statsData && (
+            <>
+              <div className="border-t border-slate-800/40 pt-2" />
+              <DataHealthTab data={statsData} />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -285,15 +284,15 @@ function UsersManagementTab({ showToast }: { showToast: (msg: string, type?: 'su
         <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
           <input
             type="text"
-            placeholder="Search users by name or email..."
+            placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 rounded-xl border border-slate-700 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+            className="flex-1 rounded-xl border border-slate-700/80 bg-slate-800/70 px-4 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
           />
           <select
             value={selectedRoleFilter}
             onChange={(e) => setSelectedRoleFilter(e.target.value)}
-            className="rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+            className="rounded-xl border border-slate-700/80 bg-slate-800/70 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
           >
             <option value="">All Roles</option>
             <option value="user">User</option>
@@ -303,7 +302,7 @@ function UsersManagementTab({ showToast }: { showToast: (msg: string, type?: 'su
           <select
             value={selectedStatusFilter}
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
-            className="rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+            className="rounded-xl border border-slate-700/80 bg-slate-800/70 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
           >
             <option value="">All Statuses</option>
             <option value="active">Active</option>
@@ -312,7 +311,7 @@ function UsersManagementTab({ showToast }: { showToast: (msg: string, type?: 'su
         </div>
         <button
           onClick={fetchUsers}
-          className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition-colors"
+          className="rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700 transition-colors shadow-sm shadow-cyan-950/40"
         >
           Refresh Users
         </button>
@@ -321,23 +320,23 @@ function UsersManagementTab({ showToast }: { showToast: (msg: string, type?: 'su
       {/* User Table */}
       <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-sm">
         {isLoading ? (
-          <div className="p-8 text-center text-sm text-slate-500">Loading platform users…</div>
+          <div className="p-8 text-center text-sm text-slate-400">Loading platform users…</div>
         ) : users.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-500">No users found matching filters.</div>
+          <div className="p-8 text-center text-sm text-slate-400">No users found matching filters.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-800/80">
+              <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800/80">
                 <tr>
                   <th className="px-6 py-4">User</th>
                   <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Account Status</th>
                   <th className="px-6 py-4 text-center">Scans</th>
                   <th className="px-6 py-4 text-center">Reports</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-800/60">
                 {users.map((u) => (
                   <tr key={u.id} className="hover:bg-slate-800/40/80 transition-colors">
                     <td className="px-6 py-4">
@@ -500,14 +499,14 @@ function UsersManagementTab({ showToast }: { showToast: (msg: string, type?: 'su
               ) : (
                 <div className="space-y-2">
                   {selectedUserActivity.reports.map((r) => (
-                    <div key={r.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3 flex items-center justify-between">
+                    <div key={r.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3 flex items-center justify-between">
                       <div>
                         <p className="text-xs font-bold text-slate-200">{r.title}</p>
                         <p className="text-[11px] text-slate-500 capitalize">{r.report_type.replace(/_/g, ' ')}</p>
                       </div>
                       <div className="text-right">
-                        <Chip text={r.status} cls="bg-amber-100 text-amber-800" />
-                        <p className="text-[10px] text-slate-400 mt-1">{new Date(r.created_at).toLocaleString()}</p>
+                        <Chip text={r.status} cls="bg-amber-900/40 text-amber-200 border border-amber-800" />
+                        <p className="text-[10px] text-slate-500 mt-1">{new Date(r.created_at).toLocaleString()}</p>
                       </div>
                     </div>
                   ))}
@@ -543,8 +542,8 @@ function PlatformInsightsTab() {
     load();
   }, []);
 
-  if (isLoading) return <p className="text-sm text-slate-500">Loading insights metrics…</p>;
-  if (!insights) return <p className="text-sm text-red-500">Failed to load platform insights.</p>;
+  if (isLoading) return <p className="text-sm text-slate-400">Loading insights metrics…</p>;
+  if (!insights) return <p className="text-sm text-red-400">Failed to load platform insights.</p>;
 
   const { user_metrics, threat_insights } = insights;
   const maxSignups = Math.max(...user_metrics.user_growth_trend.map((t) => t.signups), 1);
@@ -554,24 +553,72 @@ function PlatformInsightsTab() {
       {/* Metrics Row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total Platform Users" value={user_metrics.total_users} note="registered profiles" />
-        <StatCard label="30-Day Active Users" value={user_metrics.active_users_30d} note="executed scans or reports" color="border-indigo-200 bg-indigo-50/50" />
+        <StatCard label="30-Day Active Users" value={user_metrics.active_users_30d} note="executed scans or reports" color="border-indigo-500/30 bg-indigo-900/20" />
         <StatCard label="Total Scans Run" value={threat_insights.total_scans} note="all modules" />
-        <StatCard label="High-Risk Detection Rate" value={`${threat_insights.high_risk_percentage}%`} note={`${threat_insights.high_risk_scans} flagged scans`} color="border-red-200 bg-red-50" />
+        <StatCard label="High-Risk Detection Rate" value={`${threat_insights.high_risk_percentage}%`} note={`${threat_insights.high_risk_scans} flagged scans`} color="border-red-500/30 bg-red-900/20" />
       </div>
 
-      {/* User Growth 30-Day Bar Chart */}
-      <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-sm">
-        <h3 className="mb-4 text-base font-bold text-white">User Signup Growth (Last 30 Days)</h3>
-        <div className="flex items-end gap-1 h-32 overflow-x-auto pt-4">
-          {user_metrics.user_growth_trend.map((d) => (
-            <div key={d.date} className="flex flex-col items-center gap-1 flex-1 min-w-[8px]" title={`${d.date}: ${d.signups} signups`}>
-              <div className="w-full bg-indigo-500 rounded-t transition-all hover:bg-indigo-600" style={{ height: `${maxSignups > 0 ? (d.signups / maxSignups) * 90 : 4}px` }} />
-            </div>
-          ))}
+      {/* User Growth 30-Day Trend Visual Chart */}
+      <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="text-base font-bold text-white">User Signup Growth (Last 30 Days)</h3>
+            <p className="text-xs text-slate-400">Daily registration volume across the past 30 days</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="rounded-md bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 text-xs font-semibold text-cyan-400">
+              Total 30D Signups: {user_metrics.user_growth_trend.reduce((acc, curr) => acc + curr.signups, 0)}
+            </span>
+          </div>
         </div>
-        <div className="mt-3 flex justify-between text-xs text-slate-400">
-          <span>{user_metrics.user_growth_trend[0]?.date}</span>
-          <span>{user_metrics.user_growth_trend[user_metrics.user_growth_trend.length - 1]?.date}</span>
+
+        {/* Visual Chart Canvas */}
+        <div className="relative pt-6 pb-2">
+          {/* Background Grid Lines */}
+          <div className="absolute inset-x-0 top-6 bottom-8 flex flex-col justify-between pointer-events-none opacity-20">
+            <div className="border-b border-slate-700 w-full" />
+            <div className="border-b border-slate-700 w-full border-dashed" />
+            <div className="border-b border-slate-700 w-full" />
+          </div>
+
+          {/* 30-Day Interactive Bars */}
+          <div className="flex items-end gap-1.5 h-36 relative z-10 px-2">
+            {user_metrics.user_growth_trend.map((d) => {
+              const heightPct = maxSignups > 0 ? (d.signups / maxSignups) * 100 : 0;
+              const barHeight = d.signups > 0 ? Math.max(heightPct, 15) : 8;
+              return (
+                <div
+                  key={d.date}
+                  className="group relative flex flex-col items-center flex-1 h-full justify-end"
+                >
+                  {/* Tooltip on hover */}
+                  <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none">
+                    <div className="rounded-lg bg-slate-950 border border-cyan-500/40 px-2.5 py-1 text-[11px] font-semibold text-white shadow-xl shadow-black/80 whitespace-nowrap">
+                      <span className="text-cyan-400">{d.date}:</span> {d.signups} {d.signups === 1 ? 'signup' : 'signups'}
+                    </div>
+                    <div className="w-1.5 h-1.5 bg-slate-950 border-r border-b border-cyan-500/40 rotate-45 -mt-1" />
+                  </div>
+
+                  {/* Bar */}
+                  <div
+                    className={`w-full rounded-t transition-all duration-300 ${
+                      d.signups > 0
+                        ? 'bg-gradient-to-t from-cyan-600 to-cyan-400 shadow-sm shadow-cyan-500/50 group-hover:from-cyan-400 group-hover:to-cyan-300'
+                        : 'bg-slate-800/80 group-hover:bg-slate-700'
+                    }`}
+                    style={{ height: `${barHeight}%` }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Date Range Labels */}
+          <div className="mt-3 flex justify-between text-xs text-slate-400 font-mono px-2">
+            <span>{user_metrics.user_growth_trend[0]?.date}</span>
+            <span className="text-slate-500 text-[11px]">30-Day Activity Window</span>
+            <span>{user_metrics.user_growth_trend[user_metrics.user_growth_trend.length - 1]?.date}</span>
+          </div>
         </div>
       </div>
 
@@ -584,29 +631,29 @@ function PlatformInsightsTab() {
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
-                <span className="text-red-700">High Risk Flagged</span>
+                <span className="text-red-400">High Risk Flagged</span>
                 <span className="text-slate-200">{threat_insights.high_risk_scans}</span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                <div className="bg-red-500 h-full rounded-full" style={{ width: `${threat_insights.total_scans > 0 ? (threat_insights.high_risk_scans / threat_insights.total_scans) * 100 : 0}%` }} />
+              <div className="w-full bg-slate-950 rounded-full h-3 overflow-hidden">
+                <div className="bg-red-600 h-full rounded-full" style={{ width: `${threat_insights.total_scans > 0 ? (threat_insights.high_risk_scans / threat_insights.total_scans) * 100 : 0}%` }} />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
-                <span className="text-amber-700">Medium Risk / Caution</span>
+                <span className="text-amber-400">Medium Risk / Caution</span>
                 <span className="text-slate-200">{threat_insights.medium_risk_scans}</span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                <div className="bg-amber-500 h-full rounded-full" style={{ width: `${threat_insights.total_scans > 0 ? (threat_insights.medium_risk_scans / threat_insights.total_scans) * 100 : 0}%` }} />
+              <div className="w-full bg-slate-950 rounded-full h-3 overflow-hidden">
+                <div className="bg-amber-600 h-full rounded-full" style={{ width: `${threat_insights.total_scans > 0 ? (threat_insights.medium_risk_scans / threat_insights.total_scans) * 100 : 0}%` }} />
               </div>
             </div>
             <div>
               <div className="flex justify-between text-xs font-semibold mb-1">
-                <span className="text-emerald-700">Low Risk / Verified</span>
+                <span className="text-emerald-400">Low Risk / Verified</span>
                 <span className="text-slate-200">{threat_insights.low_risk_scans}</span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${threat_insights.total_scans > 0 ? (threat_insights.low_risk_scans / threat_insights.total_scans) * 100 : 0}%` }} />
+              <div className="w-full bg-slate-950 rounded-full h-3 overflow-hidden">
+                <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${threat_insights.total_scans > 0 ? (threat_insights.low_risk_scans / threat_insights.total_scans) * 100 : 0}%` }} />
               </div>
             </div>
           </div>
@@ -617,20 +664,20 @@ function PlatformInsightsTab() {
           <h3 className="mb-4 text-base font-bold text-white">Top Active Power Users</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-xs uppercase text-slate-400 border-b pb-2">
+              <thead className="text-xs uppercase text-slate-400 border-b border-slate-800 pb-2">
                 <tr>
                   <th className="text-left pb-2">User</th>
                   <th className="text-right pb-2">Scans Performed</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-800/60">
                 {user_metrics.top_power_users.map((u) => (
                   <tr key={u.user_id}>
                     <td className="py-2.5">
                       <p className="font-semibold text-slate-200">{u.full_name}</p>
                       <p className="text-xs text-slate-400 font-mono">{u.email}</p>
                     </td>
-                    <td className="py-2.5 text-right font-bold text-indigo-600">{u.scans_count}</td>
+                    <td className="py-2.5 text-right font-bold text-cyan-400">{u.scans_count}</td>
                   </tr>
                 ))}
                 {user_metrics.top_power_users.length === 0 && (
@@ -671,7 +718,7 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
       }
     }
     load();
-  }, []);
+  }, [showToast]);
 
   async function handleSaveConfig() {
     if (!config) return;
@@ -693,6 +740,7 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
     try {
       const res = await testModelConfig(testText);
       setTestResult(res);
+      showToast('Model evaluation complete!');
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Model test failed.', 'error');
     } finally {
@@ -700,23 +748,23 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
     }
   }
 
-  if (isLoading) return <p className="text-sm text-slate-500">Loading AI model settings…</p>;
-  if (!config) return <p className="text-sm text-red-500">Failed to load configuration.</p>;
+  if (isLoading) return <p className="text-sm text-slate-400">Loading AI model settings…</p>;
+  if (!config) return <p className="text-sm text-red-400">Failed to load configuration.</p>;
 
   return (
     <div className="space-y-8">
 
       {/* Model Controls Card */}
-      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 sm:p-8 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4">
+      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6 sm:p-8 shadow-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <h3 className="text-xl font-bold text-white">AI Model & Scoring Controls</h3>
-            <p className="text-xs text-slate-500">Adjust risk thresholds, active LLM engines, scoring weights, and prompt guardrails.</p>
+            <p className="text-xs text-slate-400">Adjust risk thresholds, active LLM engines, scoring weights, and prompt guardrails.</p>
           </div>
           <button
             onClick={handleSaveConfig}
             disabled={isSaving}
-            className="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm disabled:opacity-50"
+            className="rounded-xl bg-cyan-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-cyan-500 shadow-md shadow-cyan-950/50 transition-colors disabled:opacity-50"
           >
             {isSaving ? 'Saving Settings…' : 'Save Config Changes'}
           </button>
@@ -724,10 +772,10 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
 
         {/* Threshold Sliders */}
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="rounded-2xl bg-slate-50 p-5 space-y-2 border border-slate-100">
+          <div className="rounded-2xl bg-slate-950/70 p-5 space-y-2 border border-slate-800">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold uppercase text-slate-700">Job Fraud Risk Threshold</label>
-              <span className="text-sm font-extrabold text-indigo-600">{config.job_risk_threshold}%</span>
+              <label className="text-xs font-bold uppercase text-slate-300">Job Fraud Risk Threshold</label>
+              <span className="text-sm font-extrabold text-cyan-400">{config.job_risk_threshold}%</span>
             </div>
             <input
               type="range"
@@ -735,15 +783,15 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
               max={95}
               value={config.job_risk_threshold}
               onChange={(e) => setConfig({ ...config, job_risk_threshold: parseFloat(e.target.value) })}
-              className="w-full accent-indigo-600"
+              className="w-full accent-cyan-500"
             />
             <p className="text-[11px] text-slate-400">Scans scoring above this value get flagged as High Risk Job Scam.</p>
           </div>
 
-          <div className="rounded-2xl bg-slate-50 p-5 space-y-2 border border-slate-100">
+          <div className="rounded-2xl bg-slate-950/70 p-5 space-y-2 border border-slate-800">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold uppercase text-slate-700">Email Phishing Risk Threshold</label>
-              <span className="text-sm font-extrabold text-indigo-600">{config.email_risk_threshold}%</span>
+              <label className="text-xs font-bold uppercase text-slate-300">Email Phishing Risk Threshold</label>
+              <span className="text-sm font-extrabold text-cyan-400">{config.email_risk_threshold}%</span>
             </div>
             <input
               type="range"
@@ -751,15 +799,15 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
               max={95}
               value={config.email_risk_threshold}
               onChange={(e) => setConfig({ ...config, email_risk_threshold: parseFloat(e.target.value) })}
-              className="w-full accent-indigo-600"
+              className="w-full accent-cyan-500"
             />
             <p className="text-[11px] text-slate-400">Scans scoring above this value trigger Phishing Risk warning.</p>
           </div>
 
-          <div className="rounded-2xl bg-slate-50 p-5 space-y-2 border border-slate-100">
+          <div className="rounded-2xl bg-slate-950/70 p-5 space-y-2 border border-slate-800">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold uppercase text-slate-700">Company Scam Risk Threshold</label>
-              <span className="text-sm font-extrabold text-indigo-600">{config.company_risk_threshold}%</span>
+              <label className="text-xs font-bold uppercase text-slate-300">Company Scam Risk Threshold</label>
+              <span className="text-sm font-extrabold text-cyan-400">{config.company_risk_threshold}%</span>
             </div>
             <input
               type="range"
@@ -767,7 +815,7 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
               max={95}
               value={config.company_risk_threshold}
               onChange={(e) => setConfig({ ...config, company_risk_threshold: parseFloat(e.target.value) })}
-              className="w-full accent-indigo-600"
+              className="w-full accent-cyan-500"
             />
             <p className="text-[11px] text-slate-400">Companies with risk higher than this are listed under Predatory Watchlist.</p>
           </div>
@@ -777,7 +825,7 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
         <div className="grid gap-6 md:grid-cols-2">
           
           <div className="space-y-4">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">Active LLM Provider Engine</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">Active LLM Provider Engine</label>
             <div className="grid gap-3">
               {[
                 { id: 'gemini-1.5-flash', name: 'Google Gemini 1.5 Flash (Recommended)', desc: 'Ultra-fast structured threat detection' },
@@ -789,8 +837,8 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
                   className={cls(
                     'flex items-start gap-3 rounded-2xl border p-4 cursor-pointer transition-all',
                     config.active_llm_provider === provider.id
-                      ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20'
-                      : 'border-slate-800/80 bg-slate-900/60 hover:border-slate-700'
+                      ? 'border-cyan-500/50 bg-cyan-950/30 ring-1 ring-cyan-500/30'
+                      : 'border-slate-800 bg-slate-950/50 hover:border-slate-700'
                   )}
                 >
                   <input
@@ -799,11 +847,11 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
                     value={provider.id}
                     checked={config.active_llm_provider === provider.id}
                     onChange={(e) => setConfig({ ...config, active_llm_provider: e.target.value })}
-                    className="mt-1 accent-indigo-600"
+                    className="mt-1 accent-cyan-500"
                   />
                   <div>
                     <p className="text-sm font-bold text-white">{provider.name}</p>
-                    <p className="text-xs text-slate-500">{provider.desc}</p>
+                    <p className="text-xs text-slate-400">{provider.desc}</p>
                   </div>
                 </label>
               ))}
@@ -811,12 +859,12 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
           </div>
 
           <div className="space-y-4">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">Hybrid Scoring Component Weights</label>
-            <div className="space-y-4 rounded-2xl bg-slate-50 p-5 border border-slate-100">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">Hybrid Scoring Component Weights</label>
+            <div className="space-y-4 rounded-2xl bg-slate-950/70 p-5 border border-slate-800">
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span>Keyword Rule Heuristics</span>
-                  <span className="font-bold text-white">{Math.round(config.weight_keywords * 100)}%</span>
+                  <span className="text-slate-300">Keyword Rule Heuristics</span>
+                  <span className="font-bold text-cyan-400">{Math.round(config.weight_keywords * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -825,14 +873,14 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
                   step={0.05}
                   value={config.weight_keywords}
                   onChange={(e) => setConfig({ ...config, weight_keywords: parseFloat(e.target.value) })}
-                  className="w-full accent-indigo-600"
+                  className="w-full accent-cyan-500"
                 />
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span>Vector Embedding Similarity</span>
-                  <span className="font-bold text-white">{Math.round(config.weight_embeddings * 100)}%</span>
+                  <span className="text-slate-300">Vector Embedding Similarity</span>
+                  <span className="font-bold text-cyan-400">{Math.round(config.weight_embeddings * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -841,14 +889,14 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
                   step={0.05}
                   value={config.weight_embeddings}
                   onChange={(e) => setConfig({ ...config, weight_embeddings: parseFloat(e.target.value) })}
-                  className="w-full accent-indigo-600"
+                  className="w-full accent-cyan-500"
                 />
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span>LLM Deep Intelligence Score</span>
-                  <span className="font-bold text-white">{Math.round(config.weight_llm * 100)}%</span>
+                  <span className="text-slate-300">LLM Deep Intelligence Score</span>
+                  <span className="font-bold text-cyan-400">{Math.round(config.weight_llm * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -857,7 +905,7 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
                   step={0.05}
                   value={config.weight_llm}
                   onChange={(e) => setConfig({ ...config, weight_llm: parseFloat(e.target.value) })}
-                  className="w-full accent-indigo-600"
+                  className="w-full accent-cyan-500"
                 />
               </div>
             </div>
@@ -867,23 +915,23 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
 
         {/* System Prompt Override */}
         <div className="space-y-2">
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">AI Threat Detection System Prompt Guardrails</label>
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">AI Threat Detection System Prompt Guardrails</label>
           <textarea
             rows={3}
             value={config.system_prompt_override || ''}
             onChange={(e) => setConfig({ ...config, system_prompt_override: e.target.value })}
-            className="w-full rounded-2xl border border-slate-700 p-4 text-xs font-mono focus:ring-2 focus:ring-cyan-500/20 focus:outline-none"
+            className="w-full rounded-2xl border border-slate-700 bg-slate-950/80 p-4 text-xs font-mono text-slate-200 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500/30 focus:outline-none"
           />
         </div>
       </div>
 
       {/* Interactive Model Sandbox */}
-      <div className="rounded-3xl border border-indigo-100 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 p-6 sm:p-8 shadow-sm space-y-5">
+      <div className="rounded-3xl border border-indigo-500/30 bg-slate-900/90 p-6 sm:p-8 shadow-xl space-y-5">
         <div>
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
             🧪 Interactive AI Model Testing Playground
           </h3>
-          <p className="text-xs text-slate-500">Test sample job or communication text against active/draft model parameters live.</p>
+          <p className="text-xs text-slate-400">Test sample job or communication text against active/draft model parameters live.</p>
         </div>
 
         <div className="space-y-3">
@@ -892,28 +940,28 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
             value={testText}
             onChange={(e) => setTestText(e.target.value)}
             placeholder="Paste text to test risk evaluation..."
-            className="w-full rounded-2xl border border-slate-700 p-4 text-sm focus:ring-2 focus:ring-cyan-500/20 focus:outline-none"
+            className="w-full rounded-2xl border border-slate-700 bg-slate-950/90 p-4 text-sm text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500/30 focus:outline-none"
           />
           <button
             onClick={handleRunTest}
             disabled={isTesting}
-            className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+            className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:from-cyan-400 hover:to-blue-500 shadow-md shadow-cyan-950/50 disabled:opacity-50 transition-all"
           >
             {isTesting ? 'Evaluating Model Output…' : 'Run Live Model Evaluation'}
           </button>
         </div>
 
         {testResult && (
-          <div className="rounded-2xl border border-indigo-200 bg-slate-900/60 p-5 space-y-3 shadow-sm">
+          <div className="rounded-2xl border border-indigo-500/40 bg-slate-950/90 p-5 space-y-3 shadow-lg">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase text-slate-500">Engine: {testResult.active_provider}</span>
+              <span className="text-xs font-bold uppercase text-slate-400">Engine: {testResult.active_provider}</span>
               <Chip
                 text={`${testResult.risk_score}% ${testResult.risk_category}`}
-                cls={testResult.risk_category === 'high' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}
+                cls={testResult.risk_category === 'high' ? 'bg-red-900/40 text-red-200 border border-red-800' : 'bg-emerald-900/40 text-emerald-200 border border-emerald-800'}
               />
             </div>
             <p className="text-sm font-medium text-slate-200">{testResult.explanation}</p>
-            <div className="rounded-xl bg-slate-50 p-3 text-xs font-mono text-slate-400 space-y-1">
+            <div className="rounded-xl bg-slate-900/80 border border-slate-800 p-3 text-xs font-mono text-slate-300 space-y-1">
               <p>Keyword Score: {testResult.breakdown.keyword_score}</p>
               <p>Vector Embedding Score: {testResult.breakdown.embedding_similarity}</p>
               <p>LLM Confidence Score: {testResult.breakdown.llm_confidence}</p>
@@ -967,7 +1015,7 @@ function ReviewQueueTab({ showToast }: { showToast: (msg: string, type?: 'succes
     }
   }
 
-  if (isLoading) return <p className="text-sm text-slate-500">Loading reports queue…</p>;
+  if (isLoading) return <p className="text-sm text-slate-400">Loading reports queue…</p>;
 
   return (
     <div className="space-y-8">
@@ -976,22 +1024,22 @@ function ReviewQueueTab({ showToast }: { showToast: (msg: string, type?: 'succes
           Pending Community Fraud Reports ({reports.length})
         </h3>
         {reports.length === 0 ? (
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-8 text-center text-sm text-slate-500">
+          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-8 text-center text-sm text-slate-400">
             🎉 Queue clear! No pending community reports awaiting review.
           </div>
         ) : (
           <div className="space-y-4">
             {reports.map((r) => (
-              <div key={r.id} className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5 space-y-3">
+              <div key={r.id} className="rounded-2xl border border-amber-500/30 bg-slate-900/90 p-5 space-y-3 shadow-lg">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-white">{r.title || '(no title)'}</span>
-                    <Chip text={r.report_type.replace(/_/g, ' ')} cls="bg-slate-200 text-slate-700" />
+                    <Chip text={r.report_type.replace(/_/g, ' ')} cls="bg-slate-800 text-cyan-300 border border-cyan-500/20" />
                   </div>
                   <span className="text-xs text-slate-400">{new Date(r.created_at).toLocaleString()}</span>
                 </div>
-                <p className="text-xs text-slate-500">Target Reference: <span className="font-mono text-slate-700">{r.target_reference}</span></p>
-                <p className="text-sm text-slate-700">{r.description}</p>
+                <p className="text-xs text-slate-400">Target Reference: <span className="font-mono text-cyan-300">{r.target_reference}</span></p>
+                <p className="text-sm text-slate-200">{r.description}</p>
                 
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <input
@@ -999,19 +1047,19 @@ function ReviewQueueTab({ showToast }: { showToast: (msg: string, type?: 'succes
                     placeholder="Resolution note (optional for approve, required for reject)"
                     value={notes[r.id] ?? ''}
                     onChange={(e) => setNotes((prev) => ({ ...prev, [r.id]: e.target.value }))}
-                    className="flex-1 min-w-[240px] rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                    className="flex-1 min-w-[240px] rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
                   />
                   <button
                     onClick={() => handleReview(r.id, 'approve')}
                     disabled={reviewingId === r.id}
-                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                    className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 transition-colors shadow-sm"
                   >
                     Approve
                   </button>
                   <button
                     onClick={() => handleReview(r.id, 'reject')}
                     disabled={reviewingId === r.id}
-                    className="rounded-xl border border-red-300 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                    className="rounded-xl border border-red-500/40 bg-red-900/20 hover:bg-red-900/40 px-4 py-2 text-sm font-semibold text-red-400 disabled:opacity-50 transition-colors"
                   >
                     Reject
                   </button>
@@ -1027,7 +1075,7 @@ function ReviewQueueTab({ showToast }: { showToast: (msg: string, type?: 'succes
           <h3 className="mb-4 text-base font-bold text-white">Recently Reviewed History</h3>
           <div className="overflow-x-auto rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-sm">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-400 border-b">
+              <thead className="bg-slate-950/80 text-xs uppercase text-slate-400 border-b border-slate-800">
                 <tr>
                   <th className="px-4 py-3 text-left">Title</th>
                   <th className="px-4 py-3 text-left">Type</th>
@@ -1035,13 +1083,13 @@ function ReviewQueueTab({ showToast }: { showToast: (msg: string, type?: 'succes
                   <th className="px-4 py-3 text-left">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-800/60">
                 {reviewed.map((r) => (
                   <tr key={r.id}>
                     <td className="px-4 py-3 text-slate-200 font-medium max-w-xs truncate">{r.title || '—'}</td>
                     <td className="px-4 py-3 text-slate-400 capitalize">{r.report_type.replace(/_/g, ' ')}</td>
                     <td className="px-4 py-3">
-                      <Chip text={r.status} cls={r.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'} />
+                      <Chip text={r.status} cls={r.status === 'approved' ? 'bg-emerald-900/40 text-emerald-200 border border-emerald-800' : 'bg-red-900/40 text-red-200 border border-red-800'} />
                     </td>
                     <td className="px-4 py-3 text-slate-400 text-xs">{new Date(r.created_at).toLocaleString()}</td>
                   </tr>
@@ -1072,8 +1120,8 @@ function DataHealthTab({ data }: { data: AdminStatsResult }) {
         <h3 className="mb-4 text-base font-bold text-white">Database Table Row Counts</h3>
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {Object.entries(row_counts).map(([k, v]) => (
-            <div key={k} className="rounded-xl bg-slate-50 p-4 border border-slate-100">
-              <p className="text-xs text-slate-500 capitalize">{k.replace(/_/g, ' ')}</p>
+            <div key={k} className="rounded-xl bg-slate-950/70 p-4 border border-slate-800">
+              <p className="text-xs text-slate-400 capitalize">{k.replace(/_/g, ' ')}</p>
               <p className="text-2xl font-extrabold text-white">{v}</p>
             </div>
           ))}
@@ -1083,24 +1131,24 @@ function DataHealthTab({ data }: { data: AdminStatsResult }) {
       {/* Accuracy Feedback */}
       <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-sm">
         <h3 className="mb-1 text-base font-bold text-white">User Verdict Accuracy Feedback</h3>
-        <p className="mb-4 text-sm text-slate-500">Live feedback ratings submitted by users for scanner predictions.</p>
+        <p className="mb-4 text-sm text-slate-400">Live feedback ratings submitted by users for scanner predictions.</p>
 
         {total_fb === 0 ? (
           <p className="text-sm text-slate-400">No feedback submitted yet.</p>
         ) : (
           <div className="flex items-center gap-8 mb-6">
             <div>
-              <p className="text-3xl font-extrabold text-emerald-600">👍 {thumbs_up}</p>
-              <p className="text-xs text-slate-500 mt-1">Accurate Ratings</p>
+              <p className="text-3xl font-extrabold text-emerald-400">👍 {thumbs_up}</p>
+              <p className="text-xs text-slate-400 mt-1">Accurate Ratings</p>
             </div>
             <div>
-              <p className="text-3xl font-extrabold text-red-500">👎 {thumbs_down}</p>
-              <p className="text-xs text-slate-500 mt-1">Inaccurate Ratings</p>
+              <p className="text-3xl font-extrabold text-red-400">👎 {thumbs_down}</p>
+              <p className="text-xs text-slate-400 mt-1">Inaccurate Ratings</p>
             </div>
             {accuracy_pct !== null && (
               <div>
-                <p className="text-3xl font-extrabold text-indigo-600">{accuracy_pct}%</p>
-                <p className="text-xs text-slate-500 mt-1">Overall Accuracy Score</p>
+                <p className="text-3xl font-extrabold text-cyan-400">{accuracy_pct}%</p>
+                <p className="text-xs text-slate-400 mt-1">Overall Accuracy Score</p>
               </div>
             )}
           </div>
