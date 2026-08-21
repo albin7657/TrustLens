@@ -119,7 +119,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent p-6 lg:p-10 text-slate-200 font-sans">
+    <div className="min-h-screen bg-transparent px-4 py-6 lg:px-10 lg:py-10 text-slate-200 font-sans overflow-x-hidden">
       <div className="mx-auto max-w-7xl space-y-8">
         <Link
           href="/overview"

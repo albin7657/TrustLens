@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark overflow-x-hidden`}
       suppressHydrationWarning
       style={{ backgroundColor: '#080c14', colorScheme: 'dark' }}
     >
@@ -35,7 +35,7 @@ export default function RootLayout({
         style={{ backgroundColor: '#080c14' }}
       >
         <PersistentBackground />
-        <div className="relative z-10 flex flex-col flex-1">
+        <div className="relative z-10 flex flex-col flex-1 min-w-0">
           {children}
         </div>
       </body>

@@ -68,7 +68,7 @@ export default function DashboardLayout({
         </div>
       )}
 
-      <div className="relative z-10 flex min-h-screen flex-1 flex-col lg:ml-64">
+      <div className="relative z-10 flex min-h-screen flex-1 flex-col lg:ml-64 min-w-0 overflow-x-hidden">
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-800/80 bg-slate-950/80 px-4 py-3 backdrop-blur-2xl lg:hidden">
           <button

@@ -47,14 +47,14 @@ export default function TrustGraphPage() {
 
   return (
     <div className="min-h-screen text-slate-100">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl px-4 lg:px-6">
         <PageHeader
           title="Trust Graph Network"
           description="Explore the full recruitment fraud network — companies, recruiters, domains, reports, and how they connect."
         />
 
         {/* Stats + filters */}
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-wrap gap-3">
             <div className={`${CARD} flex items-center gap-3 px-4 py-3`}>
               <Network className="h-5 w-5 text-cyan-400" />
