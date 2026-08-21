@@ -228,17 +228,14 @@ async def get_admin_insights(
 
     # User metrics
     total_users = 0
-    new_users_30d = 0
     active_users_30d = 0
     user_growth_trend: List[Dict[str, Any]] = []
 
     try:
-        profiles = admin.table("profiles").select("id,created_at,role,status").execute().data or []
+        profiles = admin.table("profiles").select("id,email,full_name,role,created_at").execute().data or []
         total_users = len(profiles)
         
-        cutoff_30d = datetime.now(timezone.utc) - timedelta(days=30)
-        
-        # User signups per day
+        # User signups per day in the last 30 days
         daily_signups: Dict[str, int] = defaultdict(int)
         for p in profiles:
             ca = p.get("created_at")
@@ -267,8 +264,8 @@ async def get_admin_insights(
         user_scans: Dict[str, int] = defaultdict(int)
         for s in scans:
             uid = s.get("user_id")
-            if uid:
-                user_scans[uid] += 1
+            if uid and str(uid) != "None":
+                user_scans[str(uid)] += 1
 
         active_users_30d = len(user_scans)
         
@@ -276,17 +273,18 @@ async def get_admin_insights(
         prof_map = {}
         try:
             profs = admin.table("profiles").select("id,email,full_name").execute().data or []
-            prof_map = {p["id"]: p for p in profs}
+            prof_map = {str(p["id"]): p for p in profs}
         except Exception:
             pass
 
         sorted_users = sorted(user_scans.items(), key=lambda x: -x[1])[:10]
         for uid, count in sorted_users:
             info = prof_map.get(uid, {})
+            email_val = info.get("email") or f"user-{uid[:6]}"
             top_power_users.append({
                 "user_id": uid,
-                "email": info.get("email", uid[:8]),
-                "full_name": info.get("full_name") or "User",
+                "email": email_val,
+                "full_name": info.get("full_name") or (email_val.split("@")[0] if "@" in email_val else "User"),
                 "scans_count": count,
             })
     except Exception:
