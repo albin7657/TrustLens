@@ -828,8 +828,8 @@ function ModelControlsTab({ showToast }: { showToast: (msg: string, type?: 'succ
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">Active LLM Provider Engine</label>
             <div className="grid gap-3">
               {[
-                { id: 'gemini-1.5-flash', name: 'Google Gemini 1.5 Flash (Recommended)', desc: 'Ultra-fast structured threat detection' },
-                { id: 'gemini-1.5-pro', name: 'Google Gemini 1.5 Pro', desc: 'Deep contextual reasoning for complex scams' },
+                { id: 'gemini-3.5-flash', name: 'Google Gemini 3.5 Flash (Recommended)', desc: 'Ultra-fast structured threat detection' },
+                { id: 'gemini-2.5-pro', name: 'Google Gemini 2.5 Pro', desc: 'Deep contextual reasoning for complex scams' },
                 { id: 'heuristic-hybrid', name: 'DistilBERT + Heuristic Hybrid Engine', desc: 'Local rule-based classifier engine' },
               ].map((provider) => (
                 <label

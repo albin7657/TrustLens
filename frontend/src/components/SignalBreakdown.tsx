@@ -1,5 +1,5 @@
 import { SignalBreakdownItem } from '@/lib/api';
-import { CheckCircle2, AlertTriangle, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, AlertCircle, MinusCircle } from 'lucide-react';
 
 const SIGNAL_NAME_MAP: Record<string, string> = {
   'headers:security': 'Security Headers',
@@ -36,8 +36,32 @@ function formatName(name: string) {
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 }
 
-function getStatusDetails(score: number) {
+// Signals where score=0 means "this specific pattern was not detected",
+// not that everything is safe. These should show "Not Detected" instead of "Verified / Clean".
+const PATTERN_DETECTION_SIGNALS = new Set([
+  'gemini:predatory_internship_pattern',
+  'gemini:scam_stage',
+  'gemini:lure_type',
+  'gemini:impersonation_or_authority',
+  'gemini:credential_or_personal_info_request',
+  'gemini:payment_or_fee_request',
+  'rules:internship_fee_phrases',
+]);
+
+// Signals where score=0 genuinely means "safe / verified" (e.g. all headers present,
+// valid SSL, no red-flag phrases found, domain not blacklisted).
+function getStatusDetails(score: number, signalName: string) {
   if (score <= 15) {
+    const isPatternDetection = PATTERN_DETECTION_SIGNALS.has(signalName);
+    if (isPatternDetection) {
+      return {
+        status: 'not_detected',
+        label: '— Not Detected',
+        badgeClass: 'text-slate-400 bg-slate-900/60 border-slate-700/50',
+        cardBorder: 'border-slate-800/60 bg-slate-950/30',
+        barClass: 'bg-slate-700/40 w-0',
+      };
+    }
     return {
       status: 'passed',
       label: '✓ Verified / Clean',
@@ -71,7 +95,7 @@ export default function SignalBreakdown({ signals }: { signals: SignalBreakdownI
     <div className="space-y-3">
       {signals.map((s) => {
         const score = Math.round(s.score);
-        const { status, label, badgeClass, cardBorder, barClass } = getStatusDetails(score);
+        const { status, label, badgeClass, cardBorder, barClass } = getStatusDetails(score, s.name);
 
         return (
           <div key={s.name} className={`rounded-xl border p-4 transition-all ${cardBorder}`}>
@@ -79,6 +103,8 @@ export default function SignalBreakdown({ signals }: { signals: SignalBreakdownI
               <div className="flex items-center gap-2">
                 {status === 'passed' ? (
                   <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                ) : status === 'not_detected' ? (
+                  <MinusCircle className="h-4 w-4 text-slate-500 shrink-0" />
                 ) : status === 'notice' ? (
                   <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
                 ) : (
