@@ -79,24 +79,38 @@ async def list_users(
         except Exception:
             profiles_data = []
 
-    # Calculate scan and report counts per user
+    # Calculate scan and report counts per user.
+    # Only count rows where user_id IS NOT NULL — anonymous/guest scans
+    # have no user_id and cannot be attributed to any registered account.
     scan_counts: Dict[str, int] = defaultdict(int)
     report_counts: Dict[str, int] = defaultdict(int)
-    
+
     try:
-        scans_res = admin.table("scan_history").select("user_id").execute().data or []
+        scans_res = (
+            admin.table("scan_history")
+            .select("user_id")
+            .not_.is_("user_id", "null")
+            .execute()
+            .data or []
+        )
         for s in scans_res:
             uid = s.get("user_id")
-            if uid:
+            if uid and str(uid) not in ("None", "", "null"):
                 scan_counts[str(uid)] += 1
     except Exception:
         pass
 
     try:
-        reports_res = admin.table("fraud_reports").select("reporter_id").execute().data or []
+        reports_res = (
+            admin.table("fraud_reports")
+            .select("reporter_id")
+            .not_.is_("reporter_id", "null")
+            .execute()
+            .data or []
+        )
         for r in reports_res:
             rid = r.get("reporter_id")
-            if rid:
+            if rid and str(rid) not in ("None", "", "null"):
                 report_counts[str(rid)] += 1
     except Exception:
         pass
