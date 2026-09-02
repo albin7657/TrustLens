@@ -81,7 +81,7 @@ class ModelConfigSchema(BaseModel):
     job_risk_threshold: float = 70.0
     email_risk_threshold: float = 65.0
     company_risk_threshold: float = 75.0
-    active_llm_provider: str = "gemini-1.5-flash"
+    active_llm_provider: str = "gemini-3.5-flash"
     weight_keywords: float = 0.35
     weight_embeddings: float = 0.35
     weight_llm: float = 0.30

@@ -13,7 +13,7 @@ _DEFAULT_CONFIG: Dict[str, Any] = {
     "job_risk_threshold": 70.0,
     "email_risk_threshold": 65.0,
     "company_risk_threshold": 75.0,
-    "active_llm_provider": "gemini-1.5-flash",
+    "active_llm_provider": "gemini-3.5-flash",
     "weight_keywords": 0.35,
     "weight_embeddings": 0.35,
     "weight_llm": 0.30,

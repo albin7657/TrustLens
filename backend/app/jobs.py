@@ -86,15 +86,17 @@ async def _run_job_analysis(
             confidence=local_prediction["confidence"],
             risk_level=local_prediction["risk_level"],
         )
+        is_fraud = bool(local_prediction.get("prediction") == 1 and local_prediction.get("confidence", 0) >= 85.0)
         signals.append(
             Signal(
                 name="local_model:distilbert",
                 score=float(local_prediction["risk_score"]),
-                weight=15,
+                weight=25,
                 explanation=(
                     f"Local DistilBERT classifier: {local_prediction['label']} "
                     f"({local_prediction['confidence']}% confidence)."
                 ),
+                is_override=is_fraud,
             )
         )
     except Exception as exc:

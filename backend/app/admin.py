@@ -385,7 +385,7 @@ async def test_model_config_endpoint(
     else:
         category = "low"
 
-    provider = cfg.get("active_llm_provider", "gemini-1.5-flash")
+    provider = cfg.get("active_llm_provider", "gemini-3.5-flash")
 
     return ModelTestResponse(
         risk_score=final_score,

@@ -125,12 +125,17 @@ def analyze_job_posting(text: str) -> tuple[list[Signal], str, str, float]:
         score = max(0.0, min(100.0, score))
         if key == "predatory_internship_pattern":
             predatory_score = score
+        is_override = (
+            (key == "advance_fee_risk" and score >= 85.0)
+            or (key == "predatory_internship_pattern" and score >= PREDATORY_INTERNSHIP_THRESHOLD)
+        )
         signals.append(
             Signal(
                 name=f"gemini:{key}",
                 score=score,
                 weight=weight,
                 explanation=str(item.get("reason", "")),
+                is_override=is_override,
             )
         )
 
@@ -336,6 +341,7 @@ def analyze_communication(thread: str, channel: str) -> tuple[list[Signal], str,
             score=_STAGE_SEVERITY[scam_stage],
             weight=20,
             explanation=f"Classified communication stage: {scam_stage.replace('_', ' ')}.",
+            is_override=(scam_stage in ("credential_theft", "payment_request")),
         )
     )
     signals.append(
@@ -344,6 +350,7 @@ def analyze_communication(thread: str, channel: str) -> tuple[list[Signal], str,
             score=_LURE_SEVERITY[lure_type],
             weight=20,
             explanation=f"Detected lure type: {lure_type.replace('_', ' ')}.",
+            is_override=(lure_type in ("phishing_link", "credential_theft", "crypto", "gift_card")),
         )
     )
 
