@@ -46,7 +46,7 @@ async def analyze_communication(
     if not thread_text.strip():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Messages cannot all be empty.")
 
-    signals = [rule_checks.check_red_flag_phrases(thread_text)]
+    signals = [rule_checks.check_communication_red_flag_phrases(thread_text)]
 
     extracted_links: list[ExtractedLink] = []
     for item in internal_db.extract_links(thread_text):

@@ -470,6 +470,8 @@ function ScanContent() {
                     <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
                       commResult.risk_category === 'high'
                         ? 'bg-red-950/70 text-red-300 border border-red-800/60'
+                        : commResult.risk_category === 'medium'
+                        ? 'bg-amber-950/70 text-amber-300 border border-amber-800/60'
                         : 'bg-emerald-950/70 text-emerald-300 border border-emerald-800/60'
                     }`}>
                       {commResult.risk_category} Risk
@@ -502,10 +504,10 @@ function ScanContent() {
                     <p className="text-xs font-bold text-slate-500 uppercase mb-2">Extracted Domain / Link Checks</p>
                     <div className="space-y-2">
                       {commResult.extracted_links.map((link, i) => (
-                        <div key={i} className="flex items-center justify-between text-xs font-mono bg-slate-800/60 p-2 rounded-lg border border-slate-700/60">
-                          <span className="text-slate-300">{link.domain}</span>
-                          <span className={link.internal_db_hit ? 'text-red-400 font-bold' : 'text-emerald-400'}>
-                            {link.internal_db_hit ? `🚩 Hit: ${link.internal_db_hit}` : 'Clean'}
+                        <div key={i} className="flex items-center justify-between text-xs font-mono bg-slate-800/60 p-2.5 rounded-lg border border-slate-700/60">
+                          <span className="text-slate-300 truncate max-w-[55%]">{link.domain}</span>
+                          <span className={link.internal_db_hit ? 'text-red-400 font-semibold bg-red-950/60 border border-red-800/60 px-2 py-0.5 rounded' : 'text-slate-400 bg-slate-900/80 border border-slate-700/60 px-2 py-0.5 rounded text-[11px]'}>
+                            {link.internal_db_hit ? `🚩 Blacklisted in DB: ${link.internal_db_hit}` : 'Unlisted in Local DB (Unverified)'}
                           </span>
                         </div>
                       ))}
